@@ -1,0 +1,1240 @@
+{#- Shared run-history + rollback-history partial used by Color
+Correction Analysis, Pattern Correction Analysis, and the Datasets
+in Clean DB screen. Read-only: renders no rollback-initiation UI. -#}
+<style>
+    /* ── Run-history block (shared across Surfaces A / B / C) ───────── */
+    .rh-block {
+        width: 100%;
+    }
+
+    .rh-tracks {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    @media (min-width: 1100px) {
+        .rh-tracks.two-track {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    .rh-track {
+        background: rgba(0, 0, 0, 0.04);
+        border-radius: 6px;
+        padding: 14px;
+        border: 1px solid rgba(0, 0, 0, 0.10);
+    }
+
+    .rh-track h4 {
+        font-size: 0.95em;
+        margin-bottom: 10px;
+        display: flex;
+        gap: 10px;
+        align-items: baseline;
+        color: inherit;
+    }
+
+    .rh-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.78em;
+        margin-top: 0;
+    }
+
+    .rh-table th {
+        background: rgba(0, 0, 0, 0.06);
+        color: inherit;
+        opacity: 0.75;
+        font-weight: 600;
+        text-align: left;
+        padding: 6px 8px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+        font-size: 0.72em;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .rh-table td {
+        padding: 7px 8px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        vertical-align: middle;
+    }
+
+    .rh-table tr.preview-row td {
+        background: rgba(255, 193, 7, 0.08);
+    }
+
+    .rh-table tr.preview-row.stale td {
+        opacity: 0.55;
+    }
+
+    .rh-table tr.preview-separator td {
+        background: rgba(0, 0, 0, 0.06);
+        color: #b9770e;
+        font-size: 0.72em;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 6px 8px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+        font-weight: 600;
+    }
+
+    .rh-table .stale-hint {
+        color: inherit;
+        opacity: 0.65;
+        font-size: 0.72em;
+        font-weight: 400;
+        font-style: italic;
+        margin-left: 8px;
+        text-transform: none;
+        letter-spacing: 0;
+    }
+
+    .rh-table .empty-cell {
+        opacity: 0.55;
+        font-style: italic;
+        padding: 14px 8px;
+        text-align: center;
+    }
+
+    .rh-table .run-id-cell {
+        font-family: monospace;
+        opacity: 0.8;
+        font-size: 0.85em;
+        max-width: 240px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .rh-table .target-cell {
+        font-family: monospace;
+        color: #2980b9;
+    }
+
+    .rh-table .reversible-yes {
+        color: #2e7d32;
+    }
+
+    .rh-table .reversible-no {
+        color: #c62828;
+    }
+
+    .rh-table .reversible-na {
+        opacity: 0.7;
+        cursor: help;
+        border-bottom: 1px dotted rgba(0, 0, 0, 0.4);
+    }
+
+    .rh-table .ts-label {
+        opacity: 0.55;
+        font-size: 0.72em;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        display: block;
+    }
+
+    .rh-table .ts-val {
+        font-family: monospace;
+        font-size: 0.78em;
+    }
+
+    .rh-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 0.72em;
+        font-weight: 600;
+    }
+
+    .rh-badge-previewed {
+        background: #fdebd0;
+        color: #b9770e;
+    }
+
+    .rh-badge-applied {
+        background: #d5f5e3;
+        color: #1e8449;
+    }
+
+    .rh-badge-failed {
+        background: #fadbd8;
+        color: #c0392b;
+    }
+
+    .rh-badge-rolled_back {
+        background: #d6dbdf;
+        color: #566573;
+    }
+
+    .rh-table .report-link {
+        color: #2980b9;
+        text-decoration: none;
+        font-size: 0.82em;
+    }
+
+    .rh-table .report-link:hover {
+        text-decoration: underline;
+    }
+
+    .rh-table .no-report {
+        opacity: 0.55;
+        font-size: 0.82em;
+        font-style: italic;
+    }
+
+    .rh-loading {
+        opacity: 0.6;
+        font-size: 0.85em;
+        padding: 0.5rem 0;
+    }
+
+    .rh-error {
+        color: #c62828;
+        font-size: 0.85em;
+        padding: 0.5rem 0;
+    }
+
+    .rh-rollback-btn {
+        font-size: 0.78em;
+        padding: 3px 8px;
+        border-radius: 4px;
+        border: 1px solid #c0392b;
+        background: #fff;
+        color: #c0392b;
+        cursor: pointer;
+        margin-left: 6px;
+    }
+
+    .rh-rollback-btn:hover {
+        background: #fdecea;
+    }
+
+    .rh-rollback-btn[disabled] {
+        color: #999;
+        border-color: #ccc;
+        background: #f6f6f6;
+        cursor: not-allowed;
+    }
+
+    /* Task #281: custom popover for the "not reversible" pill so the
+       spec-locked reason copy reaches operators on touch devices (no
+       hover) and renders consistently across desktop browsers. The pill
+       itself becomes a focusable, button-shaped element styled to match
+       the legacy red span. */
+    .rh-table button.reversible-no {
+        background: transparent;
+        border: 0;
+        padding: 0;
+        margin: 0;
+        font: inherit;
+        color: #c62828;
+        cursor: pointer;
+        text-decoration: underline dotted;
+        text-underline-offset: 2px;
+    }
+
+    .rh-table button.reversible-no:focus-visible {
+        outline: 2px solid #c62828;
+        outline-offset: 2px;
+        border-radius: 2px;
+    }
+
+    .rh-reason-popover {
+        position: fixed;
+        z-index: 1100;
+        max-width: 280px;
+        background: #1a2332;
+        color: #fff;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 0.82em;
+        line-height: 1.4;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        pointer-events: auto;
+    }
+
+    .rh-reason-popover[hidden] {
+        display: none;
+    }
+
+    /* Rollback confirmation modal (Surface C only). */
+    .rh-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.55);
+        z-index: 1000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .rh-modal-overlay.open {
+        display: flex;
+    }
+
+    .rh-modal {
+        background: #fff;
+        color: #222;
+        border-radius: 10px;
+        width: 520px;
+        max-width: 95vw;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+        overflow: hidden;
+    }
+
+    .rh-modal-header {
+        background: #1a2332;
+        color: #fff;
+        padding: 0.85rem 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .rh-modal-header h3 {
+        font-size: 0.95rem;
+        margin: 0;
+        flex: 1;
+    }
+
+    .rh-modal-close {
+        background: transparent;
+        border: 0;
+        color: #fff;
+        font-size: 1.3rem;
+        line-height: 1;
+        cursor: pointer;
+        padding: 0 4px;
+    }
+
+    .rh-modal-body {
+        padding: 1.2rem;
+        font-size: 0.92em;
+        line-height: 1.45;
+    }
+
+    .rh-modal-body dl {
+        margin: 0.6rem 0 0;
+        display: grid;
+        grid-template-columns: max-content 1fr;
+        gap: 4px 14px;
+    }
+
+    .rh-modal-body dt {
+        opacity: 0.65;
+        font-size: 0.82em;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .rh-modal-body dd {
+        margin: 0;
+        font-family: monospace;
+        font-size: 0.9em;
+        word-break: break-all;
+    }
+
+    .rh-modal-isolation {
+        margin: 0.6rem 0 0;
+        font-size: 0.85em;
+        opacity: 0.7;
+        font-style: italic;
+    }
+
+    .rh-modal-isolation[hidden] {
+        display: none;
+    }
+
+    .rh-modal-error {
+        margin-top: 0.9rem;
+        padding: 0.7rem 0.9rem;
+        background: #fadbd8;
+        color: #c0392b;
+        border-radius: 6px;
+        font-size: 0.88em;
+    }
+
+    .rh-modal-error[hidden] {
+        display: none;
+    }
+
+    .rh-modal-footer {
+        padding: 0.85rem 1.2rem;
+        border-top: 1px solid #eee;
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+    }
+
+    .rh-modal-footer button {
+        font-size: 0.88em;
+        padding: 6px 14px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .rh-modal-cancel {
+        border: 1px solid #bbb;
+        background: #fff;
+        color: #333;
+    }
+
+    .rh-modal-cancel:hover {
+        background: #f3f3f3;
+    }
+
+    .rh-modal-confirm {
+        border: 1px solid #c0392b;
+        background: #c0392b;
+        color: #fff;
+    }
+
+    .rh-modal-confirm:hover {
+        background: #a93226;
+    }
+
+    .rh-modal-confirm[disabled],
+    .rh-modal-cancel[disabled] {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    /* Rollback-history card (read-only, shared partial). */
+    .rb-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.82em;
+    }
+
+    .rb-table th {
+        background: rgba(0, 0, 0, 0.06);
+        opacity: 0.75;
+        font-weight: 600;
+        text-align: left;
+        padding: 6px 8px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+        font-size: 0.72em;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .rb-table td {
+        padding: 7px 8px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        vertical-align: middle;
+    }
+
+    .rb-table .rb-run-id {
+        font-family: monospace;
+        font-size: 0.85em;
+    }
+
+    .rb-table .rb-restored-none {
+        opacity: 0.55;
+        font-style: italic;
+    }
+
+    .rb-empty {
+        opacity: 0.6;
+        font-style: italic;
+        padding: 0.5rem 0;
+    }
+</style>
+
+<script>
+    (function () {
+        if (window.RunHistoryBlock) return;
+
+        const RH_COLUMNS = [
+            { key: 'run_id', label: 'Run ID' },
+            { key: 'target_field', label: 'Target field' },
+            { key: 'formula_version', label: 'Formula / version' },
+            { key: 'status', label: 'Status' },
+            { key: 'cohort_size', label: 'Cohort' },
+            { key: 'timestamp', label: 'Timestamp' },
+            { key: 'reversible', label: 'Reversible' },
+            { key: 'action', label: 'Action' },
+        ];
+
+        const EMPTY_COPY = 'No runs yet for this track.';
+        const ROLLBACK_NOT_REVERSIBLE_TOOLTIP = 'No rollback script available for this run. Contact engineering to reverse manually.';
+
+        function escH(s) {
+            return String(s == null ? '' : s)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function renderHeader() {
+            return '<thead><tr>' +
+                RH_COLUMNS.map(c => `<th>${escH(c.label)}</th>`).join('') +
+                '</tr></thead>';
+        }
+
+        function renderRow(r, opts) {
+            const isPreview = !!(opts && opts.isPreview);
+            const isStale = !!(opts && opts.isStale);
+            const allowRollback = !!(opts && opts.allowRollback);
+            const track = (opts && opts.track) || '';
+            const datasetId = (opts && opts.datasetId) || '';
+            const datasetLabel = (opts && opts.datasetLabel) || datasetId;
+            const rowCls = isPreview ? `preview-row${isStale ? ' stale' : ''}` : '';
+            const status = String(r.status || 'failed');
+            const statusBadge = `<span class="rh-badge rh-badge-${escH(status)}">${escH(status)}</span>`;
+            let tsCell;
+            if (isPreview) {
+                tsCell = `<span class="ts-label">Previewed</span><span class="ts-val">${escH(r.previewed_at || '—')}</span>`;
+            } else {
+                tsCell = `<span class="ts-label">Applied</span><span class="ts-val">${escH(r.applied_at || '—')}</span>`;
+            }
+            let revCell;
+            if (isPreview) {
+                revCell = `<span class="reversible-na" title="Not applied — nothing to roll back">n/a — preview</span>`;
+            } else if (r.reversible === true) {
+                revCell = `<span class="reversible-yes">reversible</span>`;
+            } else if (r.reversible === false) {
+                // Task #280 + #281: status-aware reason copy on the "not
+                // reversible" pill, surfaced via a custom popover so the
+                // four spec-locked strings (failed / previewed /
+                // rolled_back / applied-without-script) reach operators on
+                // touch devices (no hover event) and render consistently
+                // across Chrome / Safari / Firefox on desktop. The native
+                // `title` attribute is gone — popover handlers attach via
+                // `data-rh-reason-pill` and read the verbatim reason from
+                // `data-rh-reason`. When the field is null/empty (no reason
+                // was applicable) we fall back to a plain non-interactive
+                // span so screen readers and pointer interactions are not
+                // hijacked by an empty popover.
+                const reason = r.not_reversible_reason || '';
+                if (reason) {
+                    revCell = `<button type="button" class="reversible-no"`
+                        + ` data-rh-reason-pill`
+                        + ` data-rh-reason="${escH(reason)}"`
+                        + ` aria-describedby="rh-reason-popover"`
+                        + ` aria-expanded="false">not reversible</button>`;
+                } else {
+                    revCell = `<span class="reversible-no">not reversible</span>`;
+                }
+            } else {
+                revCell = `<span style="opacity:0.5">—</span>`;
+            }
+            const reportLabel = isPreview ? 'view preview report' : 'view report';
+            const reportPart = r.report_url
+                ? `<a class="report-link" href="${escH(r.report_url)}" target="_blank" rel="noopener">${escH(reportLabel)}</a>`
+                : `<span class="no-report">${escH(reportLabel)} (n/a)</span>`;
+            // Latest Preview rows NEVER offer rollback. Only `applied`
+            // (not yet rolled back) rows on Surface C can opt in.
+            let rollbackPart = '';
+            if (allowRollback && !isPreview && status === 'applied') {
+                const cohortNum = (r.cohort_size === null || r.cohort_size === undefined)
+                    ? null : Number(r.cohort_size);
+                const cohortLabel = cohortNum === null ? 'unknown' : cohortNum.toLocaleString();
+                if (r.reversible === true) {
+                    rollbackPart = `<button type="button" class="rh-rollback-btn"
+                    data-rh-rollback="1"
+                    data-rh-track="${escH(track)}"
+                    data-rh-dataset-id="${escH(datasetId)}"
+                    data-rh-dataset-label="${escH(datasetLabel)}"
+                    data-rh-run-id="${escH(r.run_id)}"
+                    data-rh-cohort="${escH(cohortLabel)}"
+                >rollback</button>`;
+                } else {
+                    rollbackPart = `<button type="button" class="rh-rollback-btn"
+                    disabled
+                    title="${escH(ROLLBACK_NOT_REVERSIBLE_TOOLTIP)}"
+                    aria-label="${escH(ROLLBACK_NOT_REVERSIBLE_TOOLTIP)}"
+                >rollback</button>`;
+                }
+            }
+            const actionCell = reportPart + rollbackPart;
+            const cohort = (r.cohort_size === null || r.cohort_size === undefined)
+                ? '—' : Number(r.cohort_size).toLocaleString();
+            return `<tr class="${rowCls}">
+            <td class="run-id-cell" title="${escH(r.run_id)}">${escH(r.run_id)}</td>
+            <td class="target-cell">${escH(r.target_field || '—')}</td>
+            <td>${escH(r.formula_version || '—')}</td>
+            <td>${statusBadge}</td>
+            <td>${cohort}</td>
+            <td>${tsCell}</td>
+            <td>${revCell}</td>
+            <td>${actionCell}</td>
+        </tr>`;
+        }
+
+        function renderTrack(label, track, opts) {
+            opts = opts || {};
+            const preview = track && track.latest_preview ? track.latest_preview : null;
+            const runs = (track && track.runs) || [];
+            const stale = !!(track && track.latest_preview_stale);
+            const emptyCopy = (track && track.empty_state_copy) || EMPTY_COPY;
+            const isEmpty = !preview && runs.length === 0;
+            const headerExtra = (preview && stale)
+                ? '<span class="stale-hint">older than latest applied</span>'
+                : '';
+            const colspan = RH_COLUMNS.length;
+            const rowOpts = {
+                allowRollback: !!opts.allowRollback,
+                track: opts.trackKey || '',
+                datasetId: opts.datasetId || '',
+                datasetLabel: opts.datasetLabel || '',
+            };
+            let body = '';
+            if (isEmpty) {
+                body = `<tr><td colspan="${colspan}" class="empty-cell">${escH(emptyCopy)}</td></tr>`;
+            } else {
+                if (preview) {
+                    body += `<tr class="preview-separator"><td colspan="${colspan}">Latest Preview${headerExtra}</td></tr>`;
+                    // Latest Preview row deliberately drops allowRollback.
+                    body += renderRow(preview, Object.assign({}, rowOpts, {
+                        isPreview: true, isStale: stale, allowRollback: false,
+                    }));
+                }
+                runs.forEach(r => {
+                    body += renderRow(r, Object.assign({}, rowOpts, {
+                        isPreview: false, isStale: false,
+                    }));
+                });
+            }
+            return `<div class="rh-track" data-rh-track="${escH(label)}">
+            <h4>${escH(label)}</h4>
+            <table class="rh-table">
+                ${renderHeader()}
+                <tbody>${body}</tbody>
+            </table>
+        </div>`;
+        }
+
+        function renderTracksHTML(payload, opts) {
+            opts = opts || {};
+            const tracks = opts.tracks || ['color', 'pattern'];
+            const labelMap = { color: 'Color Runs', pattern: 'Pattern Runs' };
+            const cls = tracks.length > 1 ? 'rh-tracks two-track' : 'rh-tracks';
+            const items = tracks.map(t => renderTrack(
+                labelMap[t] || t,
+                (payload && payload[t]) || {},
+                {
+                    trackKey: t,
+                    allowRollback: !!opts.allowRollback,
+                    datasetId: opts.datasetId || '',
+                    datasetLabel: opts.datasetLabel || '',
+                }
+            )).join('');
+            return `<div class="rh-block"><div class="${cls}">${items}</div></div>`;
+        }
+
+        function renderRollbackHTML(events, opts) {
+            if (!events || events.length === 0) {
+                return `<p class="rb-empty">No rollbacks recorded for this track yet.</p>`;
+            }
+            const head = `<table class="rb-table"><thead><tr>
+            <th>When</th>
+            <th>Reverted run</th>
+            <th>Restored to</th>
+            <th>Actor</th>
+            <th>Reason</th>
+        </tr></thead><tbody>`;
+            const rows = events.map(ev => {
+                const restored = ev.restored_to_run_id
+                    ? `<span class="rb-run-id">${escH(ev.restored_to_run_id)}</span>`
+                    : `<span class="rb-restored-none">none (no prior applied run)</span>`;
+                return `<tr>
+                <td><span class="ts-val">${escH(ev.occurred_at || '—')}</span></td>
+                <td><span class="rb-run-id">${escH(ev.reverted_run_id || '—')}</span></td>
+                <td>${restored}</td>
+                <td>${escH(ev.actor || '—')}</td>
+                <td>${escH(ev.reason || '')}</td>
+            </tr>`;
+            }).join('');
+            return head + rows + '</tbody></table>';
+        }
+
+        async function fetchAndMount(mount) {
+            const url = mount.dataset.runHistoryUrl;
+            const tracksAttr = mount.dataset.runHistoryTracks || 'color,pattern';
+            const tracks = tracksAttr.split(',').map(s => s.trim()).filter(Boolean);
+            const allowRollback = mount.dataset.allowRollback === 'true';
+            const datasetId = mount.dataset.datasetId || '';
+            const datasetLabel = mount.dataset.datasetLabel || datasetId;
+            // Task #282: dismiss any open reason popover BEFORE swapping the
+            // table HTML. The popover is a body-level singleton anchored to
+            // a pill in the soon-to-be-replaced rows; if we don't hide it
+            // first, the bubble stays pinned to coordinates whose originating
+            // element no longer exists, leaving it stranded mid-table until
+            // the next outside click or Escape. We do NOT auto-reopen after
+            // mount — operators re-engage by hover/tap as usual.
+            hideReasonPopover();
+            mount.innerHTML = '<p class="rh-loading">Loading run history…</p>';
+            try {
+                const resp = await fetch(url);
+                const data = await resp.json();
+                // Two payload shapes: {color, pattern} (combined) or
+                // {runs: {...}, rollbacks: [...]} (single-track).
+                const payload = data && data.runs ? data.runs : data;
+                mount.innerHTML = renderTracksHTML(payload, {
+                    tracks: tracks,
+                    allowRollback: allowRollback,
+                    datasetId: datasetId,
+                    datasetLabel: datasetLabel,
+                });
+                const rollbacks = (data && data.rollbacks) || null;
+                // Rollback mount may be a sibling card; resolve at document
+                // scope by track, fall back to parent for co-located layouts.
+                let rbMount = null;
+                if (rollbacks !== null) {
+                    const trackForRb = (tracks.length === 1) ? tracks[0] : null;
+                    if (trackForRb) {
+                        rbMount = document.querySelector(
+                            `[data-rollback-history-mount][data-rollback-track="${trackForRb}"]`
+                        );
+                    }
+                    if (!rbMount && mount.parentElement) {
+                        rbMount = mount.parentElement.querySelector(
+                            '[data-rollback-history-mount]'
+                        );
+                    }
+                }
+                if (rbMount && rollbacks !== null) {
+                    rbMount.innerHTML = renderRollbackHTML(rollbacks);
+                }
+            } catch (e) {
+                mount.innerHTML = `<p class="rh-error">Failed to load run history: ${escH(e.message)}</p>`;
+            }
+        }
+
+        async function postRollback(track, datasetId, runId) {
+            const url = '/admin/clean-import/datasets/'
+                + encodeURIComponent(datasetId) + '/runs/'
+                + encodeURIComponent(runId) + '/rollback';
+            const fd = new FormData();
+            fd.append('track', track);
+            const resp = await fetch(url, { method: 'POST', body: fd });
+            let body = {};
+            try { body = await resp.json(); } catch (e) { }
+            return { ok: resp.ok, status: resp.status, body: body };
+        }
+
+        // Single source of truth for per-track copy used by the rollback
+        // modal. Both `trackToHuman` and `trackToIsolationCopy` read from
+        // this map so adding a new track (or re-wording either string)
+        // happens in exactly one place. Unknown/missing tracks fall through
+        // to defensive defaults (echo the raw value for human; null for
+        // isolation, which leaves the element hidden — never silently
+        // pick the wrong sentence).
+        const TRACK_META = {
+            color: { human: 'color', otherIsolation: 'Pattern data is not affected.' },
+            pattern: { human: 'pattern', otherIsolation: 'Color data is not affected.' },
+        };
+
+        function trackToHuman(t) {
+            return (TRACK_META[t] && TRACK_META[t].human) || t;
+        }
+
+        // Track-isolation copy (Task #276). The sentence names the OTHER
+        // track and asserts isolation, so a color rollback states pattern
+        // is unaffected and vice versa. Reads from the same TRACK_META
+        // map as trackToHuman — no parallel lookup.
+        function trackToIsolationCopy(t) {
+            return (TRACK_META[t] && TRACK_META[t].otherIsolation) || null;
+        }
+
+        // ── In-app rollback confirmation modal ─────────────────────────────
+        // Lazily created on first use, then reused. The partial is included
+        // many times per page, but the modal element lives once on document.
+        // The modal exposes a small action-bus: footer buttons / backdrop /
+        // Escape all dispatch an action ('confirm' | 'cancel') to whoever is
+        // currently awaiting via `awaitModalAction()`. The caller decides
+        // when to actually close the modal — this lets us keep the modal
+        // open across a failed POST so the user can read the error and
+        // retry without losing context.
+        let rhModalEl = null;
+        let rhPendingAction = null;       // resolver for the in-flight awaitModalAction
+        let rhModalKeyHandler = null;     // installed-while-open keydown handler
+        let rhModalReturnFocus = null;    // element to refocus on close
+
+        function ensureModalEl() {
+            if (rhModalEl) return rhModalEl;
+            const el = document.createElement('div');
+            el.className = 'rh-modal-overlay';
+            el.setAttribute('data-rh-modal', '');
+            el.setAttribute('role', 'presentation');
+            el.innerHTML =
+                '<div class="rh-modal" role="dialog" aria-modal="true"' +
+                ' aria-labelledby="rh-modal-title" data-rh-modal-card>' +
+                '<div class="rh-modal-header">' +
+                '<h3 id="rh-modal-title" data-rh-modal-title>Confirm rollback</h3>' +
+                '<button type="button" class="rh-modal-close"' +
+                ' data-rh-modal-close aria-label="Close">×</button>' +
+                '</div>' +
+                '<div class="rh-modal-body">' +
+                '<p data-rh-modal-prompt></p>' +
+                '<p class="rh-modal-isolation" data-rh-modal-isolation hidden></p>' +
+                '<dl data-rh-modal-fields></dl>' +
+                '<div class="rh-modal-error" data-rh-modal-error hidden></div>' +
+                '</div>' +
+                '<div class="rh-modal-footer">' +
+                '<button type="button" class="rh-modal-cancel"' +
+                ' data-rh-modal-cancel>Cancel</button>' +
+                '<button type="button" class="rh-modal-confirm"' +
+                ' data-rh-modal-confirm>Confirm rollback</button>' +
+                '</div>' +
+                '</div>';
+            document.body.appendChild(el);
+            function dispatch(action) {
+                if (!rhPendingAction) return;
+                const r = rhPendingAction;
+                rhPendingAction = null;
+                r(action);
+            }
+            // Backdrop click → cancel.
+            el.addEventListener('click', function (ev) {
+                if (ev.target === el) dispatch('cancel');
+            });
+            el.querySelector('[data-rh-modal-close]')
+                .addEventListener('click', function () { dispatch('cancel'); });
+            el.querySelector('[data-rh-modal-cancel]')
+                .addEventListener('click', function () { dispatch('cancel'); });
+            el.querySelector('[data-rh-modal-confirm]')
+                .addEventListener('click', function () { dispatch('confirm'); });
+            rhModalEl = el;
+            return el;
+        }
+
+        function getFocusables(card) {
+            return Array.from(card.querySelectorAll(
+                'button:not([disabled]), [href], input, select, textarea, ' +
+                '[tabindex]:not([tabindex="-1"])'
+            ));
+        }
+
+        function openConfirmModal(opts) {
+            const el = ensureModalEl();
+            const human = trackToHuman(opts.track);
+            const cohortLabel = opts.cohort || 'unknown';
+            el.querySelector('[data-rh-modal-prompt]').textContent =
+                'Roll back this ' + human + ' run? This will revert '
+                + cohortLabel + ' record' + (cohortLabel === '1' ? '' : 's')
+                + ' and cannot be undone from this screen.';
+            // Track-isolation sentence (Task #276): named other-track, or
+            // hidden when the track is unknown/missing.
+            const iso = el.querySelector('[data-rh-modal-isolation]');
+            const isoCopy = trackToIsolationCopy(opts.track);
+            if (isoCopy) {
+                iso.textContent = isoCopy;
+                iso.hidden = false;
+            } else {
+                iso.textContent = '';
+                iso.hidden = true;
+            }
+            const dl = el.querySelector('[data-rh-modal-fields]');
+            dl.innerHTML =
+                '<dt>Track</dt><dd data-rh-modal-track>' + escH(human) + '</dd>' +
+                '<dt>Dataset</dt><dd data-rh-modal-dataset>'
+                + escH(opts.datasetLabel) + '</dd>' +
+                '<dt>Run ID</dt><dd data-rh-modal-run>'
+                + escH(opts.runId) + '</dd>' +
+                '<dt>Cohort</dt><dd data-rh-modal-cohort>'
+                + escH(cohortLabel) + '</dd>';
+            clearModalError();
+            resetFooterButtons();
+            el.classList.add('open');
+            rhModalReturnFocus = opts.originBtn || document.activeElement;
+            const card = el.querySelector('[data-rh-modal-card]');
+            // Focus trap + Escape handler — installed once per open session.
+            rhModalKeyHandler = function (ev) {
+                if (ev.key === 'Escape') {
+                    ev.preventDefault();
+                    if (rhPendingAction) {
+                        const r = rhPendingAction;
+                        rhPendingAction = null;
+                        r('cancel');
+                    }
+                    return;
+                }
+                if (ev.key === 'Tab') {
+                    const f = getFocusables(card);
+                    if (f.length === 0) { ev.preventDefault(); return; }
+                    const first = f[0], last = f[f.length - 1];
+                    if (ev.shiftKey && document.activeElement === first) {
+                        ev.preventDefault(); last.focus();
+                    } else if (!ev.shiftKey && document.activeElement === last) {
+                        ev.preventDefault(); first.focus();
+                    }
+                }
+            };
+            document.addEventListener('keydown', rhModalKeyHandler, true);
+            // Default focus on Cancel for safety.
+            const cancelBtn = el.querySelector('[data-rh-modal-cancel]');
+            setTimeout(function () { try { cancelBtn.focus(); } catch (e) { } }, 0);
+        }
+
+        function awaitModalAction() {
+            // Fulfilled by the dispatch() inside ensureModalEl when one of
+            // Cancel / Confirm / Close / Backdrop / Escape fires.
+            return new Promise(function (resolve) { rhPendingAction = resolve; });
+        }
+
+        function closeModal() {
+            if (!rhModalEl) return;
+            rhModalEl.classList.remove('open');
+            if (rhModalKeyHandler) {
+                document.removeEventListener('keydown', rhModalKeyHandler, true);
+                rhModalKeyHandler = null;
+            }
+            clearModalError();
+            resetFooterButtons();
+            rhPendingAction = null;
+            const target = rhModalReturnFocus;
+            rhModalReturnFocus = null;
+            if (target && typeof target.focus === 'function') {
+                try { target.focus(); } catch (e) { }
+            }
+        }
+
+        function clearModalError() {
+            if (!rhModalEl) return;
+            const errBox = rhModalEl.querySelector('[data-rh-modal-error]');
+            errBox.hidden = true;
+            errBox.textContent = '';
+            // Restore the confirmation body when leaving the error state.
+            const prompt = rhModalEl.querySelector('[data-rh-modal-prompt]');
+            const dl = rhModalEl.querySelector('[data-rh-modal-fields]');
+            const iso = rhModalEl.querySelector('[data-rh-modal-isolation]');
+            if (prompt) prompt.hidden = false;
+            if (dl) dl.hidden = false;
+            // Restore the isolation sentence ONLY if it carried copy in the
+            // last open call (unknown-track sessions leave it empty).
+            if (iso && iso.textContent) iso.hidden = false;
+        }
+
+        function resetFooterButtons() {
+            if (!rhModalEl) return;
+            const cancelBtn = rhModalEl.querySelector('[data-rh-modal-cancel]');
+            const confirmBtn = rhModalEl.querySelector('[data-rh-modal-confirm]');
+            cancelBtn.disabled = false;
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = 'Confirm rollback';
+        }
+
+        function showModalError(message) {
+            if (!rhModalEl) return;
+            // Swap the body to an error-only state: hide the confirmation
+            // prompt, isolation sentence, and field list, and show the
+            // error region in their place.
+            const prompt = rhModalEl.querySelector('[data-rh-modal-prompt]');
+            const dl = rhModalEl.querySelector('[data-rh-modal-fields]');
+            const iso = rhModalEl.querySelector('[data-rh-modal-isolation]');
+            if (prompt) prompt.hidden = true;
+            if (dl) dl.hidden = true;
+            if (iso) iso.hidden = true;
+            const errBox = rhModalEl.querySelector('[data-rh-modal-error]');
+            errBox.textContent = 'Rollback failed: ' + (message || 'unknown error');
+            errBox.hidden = false;
+            const confirmBtn = rhModalEl.querySelector('[data-rh-modal-confirm]');
+            const cancelBtn = rhModalEl.querySelector('[data-rh-modal-cancel]');
+            confirmBtn.disabled = false;
+            cancelBtn.disabled = false;
+            confirmBtn.textContent = 'Retry rollback';
+        }
+
+        function setModalBusy(busy) {
+            if (!rhModalEl) return;
+            const confirmBtn = rhModalEl.querySelector('[data-rh-modal-confirm]');
+            const cancelBtn = rhModalEl.querySelector('[data-rh-modal-cancel]');
+            confirmBtn.disabled = !!busy;
+            cancelBtn.disabled = !!busy;
+            if (busy) confirmBtn.textContent = 'Rolling back…';
+        }
+
+        async function handleRollbackClick(btn) {
+            if (btn.disabled) return;
+            const track = btn.getAttribute('data-rh-track');
+            const datasetId = btn.getAttribute('data-rh-dataset-id');
+            const datasetLabel = btn.getAttribute('data-rh-dataset-label') || datasetId;
+            const runId = btn.getAttribute('data-rh-run-id');
+            const cohort = btn.getAttribute('data-rh-cohort') || 'unknown';
+            // Disable the originating button while the modal is engaged.
+            btn.disabled = true;
+            openConfirmModal({
+                track: track, datasetId: datasetId,
+                datasetLabel: datasetLabel, runId: runId,
+                cohort: cohort, originBtn: btn,
+            });
+            try {
+                // Loop so a failure can be retried inside the same modal
+                // session. The modal stays open after a failure; only an
+                // explicit Cancel / Close / Backdrop / Escape closes it.
+                while (true) {
+                    const action = await awaitModalAction();
+                    if (action !== 'confirm') {
+                        closeModal();
+                        return;
+                    }
+                    clearModalError();
+                    setModalBusy(true);
+                    const result = await postRollback(track, datasetId, runId);
+                    if (result.ok) {
+                        closeModal();
+                        const mount = btn.closest('[data-run-history-mount]');
+                        if (mount) fetchAndMount(mount);
+                        return;
+                    }
+                    const err = (result.body && result.body.error)
+                        || ('HTTP ' + result.status);
+                    showModalError(err);
+                    // Loop back to await the next user action (Retry / Cancel).
+                }
+            } finally {
+                // Re-enable the rollback button after the modal closes.
+                // On success, the in-place refresh will re-render the row
+                // anyway, so re-enabling here is harmless.
+                btn.disabled = false;
+            }
+        }
+
+        // ── Custom "not reversible" reason popover (Task #281) ────────────
+        // Replaces the native `title` attribute on the reversible-no pill.
+        // Native `title` doesn't fire on tap (touch devices) and is styled
+        // / timed inconsistently across browsers, so the four spec-locked
+        // reason strings were effectively invisible on phones and tablets.
+        // The popover is a singleton appended to <body>, so the partial can
+        // be included multiple times per page without leaking duplicates.
+        let rhReasonPopoverEl = null;
+        let rhReasonPopoverPill = null;
+        let rhReasonPopoverPinned = false;
+        let rhReasonPopoverHideTimer = null;
+        // Task #283: bound reposition handler stored on a module-scoped
+        // variable so the same function reference can be removed on hide.
+        // Listeners are attached only while the popover is open (see
+        // showReasonPopover / hideReasonPopover) so they aren't running
+        // during normal scroll / resize when no popover is visible.
+        let rhReasonPopoverReflow = null;
+
+        function ensureReasonPopover() {
+            if (rhReasonPopoverEl) return rhReasonPopoverEl;
+            const el = document.createElement('div');
+            el.id = 'rh-reason-popover';
+            el.className = 'rh-reason-popover';
+            el.setAttribute('role', 'tooltip');
+            el.hidden = true;
+            // Hovering the popover itself keeps it open (so the operator
+            // can read longer copy), and leaving it schedules a hide.
+            el.addEventListener('mouseenter', cancelReasonHide);
+            el.addEventListener('mouseleave', scheduleReasonHide);
+            document.body.appendChild(el);
+            rhReasonPopoverEl = el;
+            return el;
+        }
+
+        function positionReasonPopover(pill) {
+            const el = rhReasonPopoverEl;
+            if (!el) return;
+            const rect = pill.getBoundingClientRect();
+            // Task #283: if the originating pill has scrolled out of the
+            // viewport, hide the popover instead of leaving it floating
+            // over unrelated rows. A zero-size rect (detached node) also
+            // counts as out-of-viewport.
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+            const offscreen = (
+                rect.bottom <= 0 || rect.top >= vh
+                || rect.right <= 0 || rect.left >= vw
+                || (rect.width === 0 && rect.height === 0)
+            );
+            if (offscreen) {
+                hideReasonPopover();
+                return;
+            }
+            const pop = el.getBoundingClientRect();
+            let left = rect.left + (rect.width / 2) - (pop.width / 2);
+            left = Math.max(8, Math.min(left, vw - pop.width - 8));
+            let top = rect.top - pop.height - 8;
+            // Flip below if there's no room above.
+            if (top < 8) top = rect.bottom + 8;
+            el.style.left = left + 'px';
+            el.style.top = top + 'px';
+        }
+
+        function showReasonPopover(pill, pinned) {
+            cancelReasonHide();
+            const reason = pill.getAttribute('data-rh-reason') || '';
+            if (!reason) return;
+            const el = ensureReasonPopover();
+            el.textContent = reason;
+            el.hidden = false;
+            if (rhReasonPopoverPill && rhReasonPopoverPill !== pill) {
+                rhReasonPopoverPill.setAttribute('aria-expanded', 'false');
+            }
+            rhReasonPopoverPill = pill;
+            rhReasonPopoverPinned = !!pinned;
+            pill.setAttribute('aria-expanded', 'true');
+            positionReasonPopover(pill);
+            // Task #283: track scroll / resize while the popover is open
+            // so the bubble stays glued to its pill (especially on tablets
+            // rotating between portrait and landscape, and on inner
+            // scrolling containers — hence capture: true). The handler
+            // reference is stashed so hideReasonPopover can remove the
+            // exact same listeners.
+            if (!rhReasonPopoverReflow) {
+                rhReasonPopoverReflow = function () {
+                    if (rhReasonPopoverPill) {
+                        positionReasonPopover(rhReasonPopoverPill);
+                    }
+                };
+                window.addEventListener('scroll', rhReasonPopoverReflow,
+                    { passive: true, capture: true });
+                window.addEventListener('resize', rhReasonPopoverReflow,
+                    { passive: true });
+            }
+        }
+
+        function hideReasonPopover() {
+            cancelReasonHide();
+            // Task #283: tear down the scroll / resize listeners so they
+            // don't keep firing while no popover is visible. Removal must
+            // mirror the addEventListener options used in showReasonPopover
+            // (capture flag matters for removeEventListener matching).
+            if (rhReasonPopoverReflow) {
+                window.removeEventListener('scroll', rhReasonPopoverReflow,
+                    { capture: true });
+                window.removeEventListener('resize', rhReasonPopoverReflow);
+                rhReasonPopoverReflow = null;
+            }
+            if (!rhReasonPopoverEl) return;
+            rhReasonPopoverEl.hidden = true;
+            if (rhReasonPopoverPill) {
+                rhReasonPopoverPill.setAttribute('aria-expanded', 'false');
+            }
+            rhReasonPopoverPill = null;
+            rhReasonPopoverPinned = false;
+        }
+
+        function scheduleReasonHide() {
+            cancelReasonHide();
+            rhReasonPopoverHideTimer = setTimeout(function () {
+                if (!rhReasonPopoverPinned) hideReasonPopover();
+            }, 120);
+        }
+
+        function cancelReasonHide() {
+            if (rhReasonPopoverHideTimer) {
+                clearTimeout(rhReasonPopoverHideTimer);
+                rhReasonPopoverHideTimer = null;
+            }
+        }
+
+        document.addEventListener('mouseover', function (ev) {
+            const pill = ev.target && ev.target.closest
+                ? ev.target.closest('[data-rh-reason-pill]')
+                : null;
+            if (!pill) return;
+            showReasonPopover(pill, rhReasonPopoverPinned
+                && rhReasonPopoverPill === pill);
+        });
+
+        document.addEventListener('mouseout', function (ev) {
+            const pill = ev.target && ev.target.closest
+                ? ev.target.closest('[data-rh-reason-pill]')
+                : null;
+            if (!pill) return;
+            scheduleReasonHide();
+        });
+
+        document.addEventListener('focusin', function (ev) {
+            const pill = ev.target && ev.target.closest
+                ? ev.target.closest('[data-rh-reason-pill]')
+                : null;
+            if (!pill) return;
+            showReasonPopover(pill, false);
+        });
+
+        document.addEventListener('focusout', function (ev) {
+            const pill = ev.target && ev.target.closest
+                ? ev.target.closest('[data-rh-reason-pill]')
+                : null;
+            if (!pill) return;
+            if (!rhReasonPopoverPinned) hideReasonPopover();
+        });
+
+        document.addEventListener('keydown', function (ev) {
+            if (ev.key === 'Escape' && rhReasonPopoverPill) {
+                const pill = rhReasonPopoverPill;
+                hideReasonPopover();
+                if (pill && typeof pill.focus === 'function') {
+                    try { pill.focus(); } catch (e) { }
+                }
+            }
+        });
+
+        // Click handler for the reason pill: toggles a "pinned" state so a
+        // tap on touch devices keeps the popover open until the operator
+        // taps outside, taps the pill again, or presses Escape.
+        document.addEventListener('click', function (ev) {
+            const pill = ev.target && ev.target.closest
+                ? ev.target.closest('[data-rh-reason-pill]')
+                : null;
+            if (pill) {
+                ev.preventDefault();
+                if (rhReasonPopoverPinned && rhReasonPopoverPill === pill) {
+                    hideReasonPopover();
+                } else {
+                    showReasonPopover(pill, true);
+                }
+                return;
+            }
+            // Click outside the popover (and outside any pill) closes a
+            // pinned popover so it doesn't get stranded on the page.
+            if (rhReasonPopoverPinned && rhReasonPopoverEl
+                && !rhReasonPopoverEl.contains(ev.target)) {
+                hideReasonPopover();
+            }
+        });
+
+        document.addEventListener('click', function (ev) {
+            const btn = ev.target && ev.target.closest
+                ? ev.target.closest('button.rh-rollback-btn[data-rh-rollback="1"]')
+                : null;
+            if (!btn) return;
+            // Defense-in-depth: even though `data-rh-rollback="1"` is ONLY
+            // emitted by the enabled-rollback branch (which itself only
+            // renders when the host mount carries `data-allow-rollback`),
+            // confirm the click happened inside an opted-in mount before
+            // initiating any rollback flow. Surfaces A and B never set this
+            // flag, so a misconfigured host can never accidentally trigger
+            // the modal.
+            const mount = btn.closest('[data-run-history-mount]');
+            if (mount && mount.dataset.allowRollback !== 'true') return;
+            ev.preventDefault();
+            handleRollbackClick(btn);
+        });
+
+        function bootstrap(root) {
+            root = root || document;
+            const mounts = root.querySelectorAll('[data-run-history-mount][data-run-history-url]');
+            mounts.forEach(fetchAndMount);
+        }
+
+        window.RunHistoryBlock = {
+            renderTracksHTML: renderTracksHTML,
+            renderTrack: renderTrack,
+            renderRow: renderRow,
+            renderRollbackHTML: renderRollbackHTML,
+            bootstrap: bootstrap,
+            fetchAndMount: fetchAndMount,
+            // Test hooks for the in-app rollback modal — public API for the
+            // partial-level test suite, not for application code.
+            _modalEl: function () { return rhModalEl; },
+            _handleRollbackClick: handleRollbackClick,
+            EMPTY_STATE_COPY: EMPTY_COPY,
+            ROLLBACK_NOT_REVERSIBLE_TOOLTIP: ROLLBACK_NOT_REVERSIBLE_TOOLTIP,
+            COLUMNS: RH_COLUMNS,
+        };
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function () { bootstrap(); });
+        } else {
+            bootstrap();
+        }
+    })();
+</script>

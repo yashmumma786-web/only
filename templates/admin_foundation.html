@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foundation Compute - Admin</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            margin-bottom: 0.5rem;
+            color: #fff;
+        }
+
+        .subtitle {
+            color: #888;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: #16213e;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #0f3460;
+        }
+
+        .card h2 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: #e94560;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat {
+            background: #0f3460;
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+
+        .stat.done .stat-value {
+            color: #27ae60;
+        }
+
+        .stat.failed .stat-value {
+            color: #e74c3c;
+        }
+
+        .stat.pending .stat-value {
+            color: #f39c12;
+        }
+
+        .progress-bar {
+            background: #0f3460;
+            border-radius: 4px;
+            height: 24px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #27ae60, #2ecc71);
+            height: 100%;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .btn-primary {
+            background: #e94560;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #c73e54;
+        }
+
+        .btn-primary:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #0f3460;
+            color: #fff;
+            border: 1px solid #1a4a7a;
+        }
+
+        .btn-secondary:hover {
+            background: #1a4a7a;
+        }
+
+        .btn-danger {
+            background: #c0392b;
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            background: #a93226;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-running {
+            background: #27ae60;
+            color: #fff;
+        }
+
+        .status-done {
+            background: #3498db;
+            color: #fff;
+        }
+
+        .status-failed {
+            background: #e74c3c;
+            color: #fff;
+        }
+
+        .status-none {
+            background: #555;
+            color: #ccc;
+        }
+
+        .errors-list {
+            background: #0f3460;
+            border-radius: 8px;
+            padding: 1rem;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+        }
+
+        .error-item {
+            padding: 0.5rem;
+            border-bottom: 1px solid #1a4a7a;
+        }
+
+        .error-item:last-child {
+            border-bottom: none;
+        }
+
+        .error-url {
+            color: #888;
+            word-break: break-all;
+            font-size: 0.75rem;
+        }
+
+        .error-msg {
+            color: #e74c3c;
+            margin-top: 0.25rem;
+        }
+
+        .worker-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .worker-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #555;
+        }
+
+        .worker-dot.active {
+            background: #27ae60;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .back-link {
+            color: #e94560;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .refresh-info {
+            color: #666;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <a href="/search" class="back-link">&larr; Back to Search</a>
+        <h1>Foundation Compute</h1>
+        <p class="subtitle">Compute CLIP embeddings for all stock images</p>
+
+        <div class="card">
+            <h2>Job Status</h2>
+            <div class="worker-status">
+                <div class="worker-dot" id="workerDot"></div>
+                <span id="workerText">Worker: Checking...</span>
+                <span class="status-badge status-none" id="jobStatus">-</span>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat done">
+                    <div class="stat-value" id="statDone">0</div>
+                    <div class="stat-label">Done</div>
+                </div>
+                <div class="stat pending">
+                    <div class="stat-value" id="statPending">0</div>
+                    <div class="stat-label">Pending</div>
+                </div>
+                <div class="stat failed">
+                    <div class="stat-value" id="statFailed">0</div>
+                    <div class="stat-label">Failed</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="statTotal">0</div>
+                    <div class="stat-label">Total</div>
+                </div>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%">0%</div>
+            </div>
+
+            <p class="refresh-info" id="refreshInfo">Auto-refreshing every 3 seconds...</p>
+        </div>
+
+        <div class="card">
+            <h2>Actions</h2>
+            <button class="btn btn-primary" id="btnStart" onclick="startJob()">
+                Start Foundation Compute
+            </button>
+            <button class="btn btn-secondary" id="btnRebuild" onclick="rebuildAggregates()">
+                Rebuild Aggregates
+            </button>
+            <button class="btn btn-secondary" id="btnResume" onclick="resumeWorker()">
+                Resume Worker
+            </button>
+            <button class="btn btn-secondary" id="btnRetryFailed" onclick="retryFailed()">
+                Retry Failed
+            </button>
+            <button class="btn btn-danger" id="btnStop" onclick="stopWorker()">
+                Stop Worker
+            </button>
+        </div>
+
+        <div class="card" id="failureStatsCard" style="display: none;">
+            <h2>Failure Breakdown</h2>
+            <div id="failureStats" class="errors-list"></div>
+        </div>
+
+        <div class="card">
+            <h2>Recent Errors</h2>
+            <div class="errors-list" id="errorsList">
+                <p style="color: #666;">No errors</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let refreshInterval;
+
+        async function fetchStatus() {
+            try {
+                const resp = await fetch('/api/orchestrator/compute/status');
+                const data = await resp.json();
+
+                document.getElementById('statDone').textContent = data.done.toLocaleString();
+                document.getElementById('statPending').textContent = data.pending.toLocaleString();
+                document.getElementById('statFailed').textContent = data.failed.toLocaleString();
+                document.getElementById('statTotal').textContent = data.total.toLocaleString();
+
+                const pct = data.percent || 0;
+                const fill = document.getElementById('progressFill');
+                fill.style.width = pct + '%';
+                fill.textContent = pct.toFixed(1) + '%';
+
+                const workerDot = document.getElementById('workerDot');
+                const workerText = document.getElementById('workerText');
+                if (data.worker_running) {
+                    workerDot.classList.add('active');
+                    workerText.textContent = 'Worker: Running';
+                } else {
+                    workerDot.classList.remove('active');
+                    workerText.textContent = 'Worker: Stopped';
+                }
+
+                const jobBadge = document.getElementById('jobStatus');
+                if (data.status === 'RUNNING') {
+                    jobBadge.className = 'status-badge status-running';
+                    jobBadge.textContent = 'RUNNING';
+                } else if (data.status === 'DONE') {
+                    jobBadge.className = 'status-badge status-done';
+                    jobBadge.textContent = 'DONE';
+                } else if (data.status === 'FAILED' || data.status === 'CANCELED') {
+                    jobBadge.className = 'status-badge status-failed';
+                    jobBadge.textContent = data.status;
+                } else {
+                    jobBadge.className = 'status-badge status-none';
+                    jobBadge.textContent = data.status || 'No Job';
+                }
+
+                const errorsList = document.getElementById('errorsList');
+                if (data.recent_errors && data.recent_errors.length > 0) {
+                    errorsList.innerHTML = data.recent_errors.map(e => `
+                        <div class="error-item">
+                            <div class="error-url">${e.image_url || 'Unknown URL'}</div>
+                            <div class="error-msg">${e.error || 'Unknown error'}</div>
+                        </div>
+                    `).join('');
+                } else {
+                    errorsList.innerHTML = '<p style="color: #666;">No errors</p>';
+                }
+
+            } catch (err) {
+                console.error('Failed to fetch status:', err);
+            }
+        }
+
+        async function startJob() {
+            const btn = document.getElementById('btnStart');
+            btn.disabled = true;
+            btn.textContent = 'Starting...';
+
+            try {
+                const resp = await fetch('/api/orchestrator/compute/start', { method: 'POST' });
+                const data = await resp.json();
+                alert(`Job started! Total images: ${data.total_images}`);
+                fetchStatus();
+            } catch (err) {
+                alert('Failed to start job: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Start Foundation Compute';
+            }
+        }
+
+        async function rebuildAggregates() {
+            const btn = document.getElementById('btnRebuild');
+            btn.disabled = true;
+            btn.textContent = 'Rebuilding...';
+
+            try {
+                const resp = await fetch('/api/orchestrator/compute/rebuild_aggregates', { method: 'POST' });
+                const data = await resp.json();
+                alert(`Aggregates rebuilt! Computed: ${data.computed}, Errors: ${data.errors}`);
+            } catch (err) {
+                alert('Failed to rebuild: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Rebuild Aggregates';
+            }
+        }
+
+        async function resumeWorker() {
+            try {
+                const resp = await fetch('/api/orchestrator/compute/resume', { method: 'POST' });
+                const data = await resp.json();
+                fetchStatus();
+            } catch (err) {
+                alert('Failed to resume: ' + err.message);
+            }
+        }
+
+        async function stopWorker() {
+            if (!confirm('Stop the worker? Processing will pause.')) return;
+
+            try {
+                const resp = await fetch('/api/orchestrator/compute/stop', { method: 'POST' });
+                await resp.json();
+                fetchStatus();
+            } catch (err) {
+                alert('Failed to stop: ' + err.message);
+            }
+        }
+
+        async function retryFailed() {
+            const btn = document.getElementById('btnRetryFailed');
+            btn.disabled = true;
+            btn.textContent = 'Retrying...';
+
+            try {
+                const resp = await fetch('/api/orchestrator/compute/retry_failed', { method: 'POST' });
+                const data = await resp.json();
+
+                let msg = `Reset ${data.reset_count} failed images to pending.\n`;
+                if (data.previous_failure_stats && Object.keys(data.previous_failure_stats).length > 0) {
+                    msg += '\nPrevious failures by reason:\n';
+                    for (const [reason, count] of Object.entries(data.previous_failure_stats)) {
+                        msg += `  ${reason}: ${count}\n`;
+                    }
+                }
+                msg += `\nWorker started: ${data.worker_started}`;
+                alert(msg);
+                fetchStatus();
+            } catch (err) {
+                alert('Failed to retry: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Retry Failed';
+            }
+        }
+
+        async function fetchFailureStats() {
+            try {
+                const resp = await fetch('/api/orchestrator/compute/failure_stats');
+                const data = await resp.json();
+
+                const card = document.getElementById('failureStatsCard');
+                const container = document.getElementById('failureStats');
+
+                if (data.total_failed > 0 && Object.keys(data.by_reason).length > 0) {
+                    card.style.display = 'block';
+                    container.innerHTML = Object.entries(data.by_reason)
+                        .sort((a, b) => b[1] - a[1])
+                        .map(([reason, count]) => `
+                            <div class="error-item">
+                                <span style="color: #e94560; font-weight: bold;">${count}</span>
+                                <span style="margin-left: 0.5rem;">${reason}</span>
+                            </div>
+                        `).join('');
+                } else {
+                    card.style.display = 'none';
+                }
+            } catch (err) {
+                console.error('Failed to fetch failure stats:', err);
+            }
+        }
+
+        // Initial fetch and start auto-refresh
+        fetchStatus();
+        fetchFailureStats();
+        refreshInterval = setInterval(() => {
+            fetchStatus();
+            fetchFailureStats();
+        }, 3000);
+    </script>
+</body>
+
+</html>

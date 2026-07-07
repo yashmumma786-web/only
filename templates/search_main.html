@@ -1,0 +1,2288 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Your Stone — StoneStocks</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+        }
+
+        .header a {
+            color: #ecf0f1;
+            text-decoration: none;
+        }
+
+        .search-bar {
+            background: white;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-bar input[type="text"] {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .search-bar button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .search-bar .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .search-bar .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .search-bar .btn-upload {
+            background: #27ae60;
+            color: white;
+        }
+
+        .main {
+            display: flex;
+            min-height: calc(100vh - 140px);
+        }
+
+        .sidebar {
+            width: 280px;
+            background: white;
+            border-right: 1px solid #ddd;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .sidebar h3 {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin: 1rem 0 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .sidebar h3:first-child {
+            margin-top: 0;
+        }
+
+        .filter-group {
+            margin-bottom: 1rem;
+        }
+
+        .filter-group label {
+            display: block;
+            font-size: 0.85rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .toggle input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+        }
+
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .chip {
+            padding: 0.4rem 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .chip:hover {
+            border-color: #3498db;
+        }
+
+        .chip.active {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+
+        .chip.disabled {
+            opacity: 0.35;
+            pointer-events: none;
+        }
+
+        .pf-chip .pf-count {
+            font-size: 0.7rem;
+            opacity: 0.8;
+            margin-left: 0.2rem;
+        }
+
+        .pf-chip .pf-count:empty {
+            display: none;
+        }
+
+        .bc-chip .bc-count {
+            font-size: 0.7rem;
+            opacity: 0.8;
+            margin-left: 0.2rem;
+        }
+
+        .bc-chip .bc-count:empty {
+            display: none;
+        }
+
+        .slider-group {
+            margin-top: 0.5rem;
+        }
+
+        .slider-group input[type="range"] {
+            width: 100%;
+        }
+
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: #7f8c8d;
+        }
+
+
+
+        .results {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .results-header h2 {
+            font-size: 1.1rem;
+        }
+
+        .results-header span {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+
+        .stone-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stone-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .stone-card img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            background: #eee;
+            cursor: pointer;
+        }
+
+        .stone-card .info {
+            padding: 0.75rem;
+        }
+
+        .stone-card .name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+        }
+
+        .stone-card .name:hover {
+            color: #3498db;
+        }
+
+        .stone-card .id {
+            font-size: 0.75rem;
+            color: #7f8c8d;
+            margin-bottom: 0.5rem;
+        }
+
+        .badges {
+            display: flex;
+            gap: 0.25rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.5rem;
+        }
+
+        .badge {
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.65rem;
+            font-weight: 600;
+        }
+
+        .badge-tone {
+            font-size: 0.6rem;
+            padding: 0.1rem 0.3rem;
+        }
+
+        .badge-tone-green {
+            background: #27ae60;
+            color: white;
+        }
+
+        .badge-tone-red {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .badge-tone-warm {
+            background: #f39c12;
+            color: white;
+        }
+
+        .badge-tone-cool {
+            background: #3498db;
+            color: white;
+        }
+
+        .tone-chip.active {
+            background: var(--tone-bg, #3498db);
+            color: white;
+            border-color: var(--tone-bg, #3498db);
+        }
+
+        .tags-row {
+            display: flex;
+            gap: 0.25rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .color-chip {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 1px solid #ddd;
+        }
+
+        .color-chip.white {
+            background: #f5f5f5;
+        }
+
+        .color-chip.beige {
+            background: #d4b896;
+        }
+
+        .color-chip.grey {
+            background: #95a5a6;
+        }
+
+        .color-chip.gray {
+            background: #95a5a6;
+        }
+
+        .color-chip.black {
+            background: #2c3e50;
+        }
+
+        .color-chip.brown {
+            background: #8b4513;
+        }
+
+        .color-chip.green {
+            background: #27ae60;
+        }
+
+        .color-chip.gold {
+            background: #f1c40f;
+        }
+
+        .color-chip.red {
+            background: #e74c3c;
+        }
+
+        .color-chip.pink {
+            background: #ff69b4;
+        }
+
+        .color-chip.yellow {
+            background: #f39c12;
+        }
+
+        .color-chip.blue {
+            background: #3498db;
+        }
+
+        .color-chip.purple {
+            background: #9b59b6;
+        }
+
+        .color-chip.orange {
+            background: #e67e22;
+        }
+
+        .color-chip.warm {
+            background: #f39c12;
+        }
+
+        .color-chip.cool {
+            background: #3498db;
+        }
+
+        .neutral-base.black {
+            background: #000 !important;
+            border-color: #333 !important;
+        }
+
+        .neutral-base.white {
+            background: #fff !important;
+            border: 2px solid #999 !important;
+        }
+
+        .neutral-base.grey,
+        .neutral-base.gray {
+            background: #777 !important;
+            border-color: #555 !important;
+        }
+
+        .vein-icon {
+            font-size: 0.8rem;
+        }
+
+        .accent-dots {
+            display: flex;
+            gap: 2px;
+        }
+
+        .accent-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            align-items: stretch;
+        }
+
+        .card-actions button {
+            flex: 1;
+            padding: 0.4rem;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+
+        .card-actions button:hover {
+            background: #f8f9fa;
+        }
+
+        .card-actions .fix-color-btn {
+            flex: 0 0 auto;
+            width: 32px;
+            padding: 0.3rem;
+            font-size: 0.95rem;
+            line-height: 1;
+        }
+
+        .card-actions .fix-color-btn.active {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+
+        #colorFixPopover {
+            position: absolute;
+            z-index: 1000;
+            width: 280px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+            padding: 0.75rem;
+            display: none;
+            font-size: 0.8rem;
+        }
+
+        #colorFixPopover.visible {
+            display: block;
+        }
+
+        #colorFixPopover .cfp-title {
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 0.15rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #colorFixPopover .cfp-current {
+            color: #7f8c8d;
+            font-size: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        #colorFixPopover .cfp-current .color-chip {
+            display: inline-block;
+            vertical-align: middle;
+            width: 12px;
+            height: 12px;
+            margin-right: 4px;
+        }
+
+        #colorFixPopover .cfp-label {
+            font-size: 0.7rem;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            margin: 0.25rem 0;
+            letter-spacing: 0.4px;
+        }
+
+        #colorFixPopover .cfp-palette {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 0.5rem;
+        }
+
+        #colorFixPopover .cfp-swatch {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            border: 2px solid #ddd;
+            cursor: pointer;
+            position: relative;
+        }
+
+        #colorFixPopover .cfp-swatch:hover {
+            border-color: #3498db;
+        }
+
+        #colorFixPopover .cfp-swatch.selected {
+            border-color: #2c3e50;
+            box-shadow: 0 0 0 2px #fff inset, 0 0 0 3px #2c3e50;
+        }
+
+        #colorFixPopover textarea {
+            width: 100%;
+            min-height: 44px;
+            padding: 0.4rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 0.8rem;
+            resize: vertical;
+        }
+
+        #colorFixPopover .cfp-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+            margin-top: 0.5rem;
+        }
+
+        #colorFixPopover .cfp-buttons button {
+            padding: 0.4rem;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+
+        #colorFixPopover .cfp-buttons button:hover:not(:disabled) {
+            background: #f8f9fa;
+        }
+
+        #colorFixPopover .cfp-buttons button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        #colorFixPopover .cfp-save {
+            grid-column: 1 / -1;
+            background: #3498db !important;
+            color: white;
+            border-color: #3498db !important;
+            font-weight: 600;
+        }
+
+        #colorFixPopover .cfp-save:hover:not(:disabled) {
+            background: #2980b9 !important;
+        }
+
+        #colorFixPopover .cfp-status {
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            min-height: 1em;
+        }
+
+        #colorFixPopover .cfp-status.error {
+            color: #c0392b;
+        }
+
+        #colorFixPopover .cfp-status.success {
+            color: #27ae60;
+        }
+
+        /* Family-propagation modal (Task #341) */
+        #cfpFamilyOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            z-index: 1100;
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 4vh;
+        }
+
+        #cfpFamilyOverlay.visible {
+            display: flex;
+        }
+
+        #cfpFamilyModal {
+            background: white;
+            width: min(720px, 94vw);
+            max-height: 90vh;
+            border-radius: 8px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            font-size: 0.85rem;
+        }
+
+        #cfpFamilyModal .cfp-fam-header {
+            padding: 0.9rem 1rem 0.6rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        #cfpFamilyModal .cfp-fam-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin: 0 0 0.25rem;
+        }
+
+        #cfpFamilyModal .cfp-fam-intro {
+            color: #555;
+            font-size: 0.85rem;
+            margin: 0;
+        }
+
+        #cfpFamilyModal .cfp-fam-body {
+            padding: 0.4rem 1rem;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        #cfpFamilyModal .cfp-fam-row {
+            display: grid;
+            grid-template-columns: 56px 1fr auto;
+            gap: 0.75rem;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f4f4f4;
+        }
+
+        #cfpFamilyModal .cfp-fam-row:last-child {
+            border-bottom: none;
+        }
+
+        #cfpFamilyModal .cfp-fam-thumb {
+            width: 56px;
+            height: 56px;
+            border-radius: 4px;
+            object-fit: cover;
+            background: #f0f0f0;
+        }
+
+        #cfpFamilyModal .cfp-fam-meta {
+            min-width: 0;
+        }
+
+        #cfpFamilyModal .cfp-fam-name {
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #cfpFamilyModal .cfp-fam-sub {
+            color: #7f8c8d;
+            font-size: 0.75rem;
+        }
+
+        #cfpFamilyModal .cfp-fam-colors {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.75rem;
+            color: #555;
+        }
+
+        #cfpFamilyModal .cfp-fam-colors .color-chip {
+            width: 14px;
+            height: 14px;
+        }
+
+        #cfpFamilyModal .cfp-fam-source {
+            font-size: 0.65rem;
+            color: #95a5a6;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-left: 0.2rem;
+        }
+
+        #cfpFamilyModal .cfp-fam-score {
+            font-size: 0.7rem;
+            color: #95a5a6;
+            margin-left: 0.4rem;
+        }
+
+        #cfpFamilyModal .cfp-fam-check {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        #cfpFamilyModal .cfp-fam-check input {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        #cfpFamilyModal .cfp-fam-footer {
+            padding: 0.75rem 1rem;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        #cfpFamilyModal .cfp-fam-footer .cfp-fam-status {
+            flex: 1;
+            font-size: 0.78rem;
+            color: #555;
+        }
+
+        #cfpFamilyModal .cfp-fam-footer .cfp-fam-status.error {
+            color: #c0392b;
+        }
+
+        #cfpFamilyModal .cfp-fam-footer button {
+            padding: 0.5rem 0.9rem;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            background: white;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        #cfpFamilyModal .cfp-fam-footer button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #cfpFamilyModal .cfp-fam-footer .cfp-fam-skip {
+            background: white;
+        }
+
+        #cfpFamilyModal .cfp-fam-footer .cfp-fam-apply {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+            font-weight: 600;
+        }
+
+        #cfpFamilyModal .cfp-fam-footer .cfp-fam-apply:hover:not(:disabled) {
+            background: #2980b9;
+        }
+
+        #cfpToast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2c3e50;
+            color: white;
+            padding: 0.6rem 1rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            z-index: 1200;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        #cfpToast.visible {
+            display: block;
+        }
+
+        #cfpToast.success {
+            background: #27ae60;
+        }
+
+        #cfpToast.error {
+            background: #c0392b;
+        }
+
+        .card-actions .fix-pattern-btn {
+            flex: 0 0 auto;
+            width: 32px;
+            padding: 0.3rem;
+            font-size: 0.95rem;
+            line-height: 1;
+        }
+
+        .card-actions .fix-pattern-btn.active {
+            background: #8e44ad;
+            color: white;
+            border-color: #8e44ad;
+        }
+
+        .pattern-chip-display {
+            display: inline-block;
+            padding: 0.1rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            background: #ecf0f1;
+            color: #2c3e50;
+            margin-right: 0.25rem;
+            text-transform: capitalize;
+        }
+
+        #patternFixPopover {
+            position: absolute;
+            z-index: 1000;
+            width: 320px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+            padding: 0.75rem;
+            display: none;
+            font-size: 0.8rem;
+        }
+
+        #patternFixPopover.visible {
+            display: block;
+        }
+
+        #patternFixPopover .pfp-title {
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 0.15rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #patternFixPopover .pfp-current {
+            color: #2c3e50;
+            font-size: 0.78rem;
+            margin-bottom: 0.3rem;
+        }
+
+        #patternFixPopover .pfp-evidence {
+            color: #7f8c8d;
+            font-size: 0.72rem;
+            margin-bottom: 0.4rem;
+        }
+
+        #patternFixPopover .pfp-evidence .pfp-ev-row {
+            margin: 0.1rem 0;
+        }
+
+        #patternFixPopover .pfp-label {
+            font-size: 0.7rem;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            margin: 0.35rem 0 0.2rem;
+            letter-spacing: 0.4px;
+        }
+
+        #patternFixPopover .pfp-pattern-chips,
+        #patternFixPopover .pfp-reason-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-bottom: 0.3rem;
+        }
+
+        #patternFixPopover .pfp-pchip,
+        #patternFixPopover .pfp-rchip {
+            padding: 0.25rem 0.55rem;
+            border: 1px solid #ddd;
+            border-radius: 14px;
+            font-size: 0.72rem;
+            cursor: pointer;
+            background: white;
+            text-transform: capitalize;
+        }
+
+        #patternFixPopover .pfp-pchip:hover,
+        #patternFixPopover .pfp-rchip:hover {
+            border-color: #8e44ad;
+        }
+
+        #patternFixPopover .pfp-pchip.selected {
+            background: #8e44ad;
+            color: white;
+            border-color: #8e44ad;
+        }
+
+        #patternFixPopover .pfp-rchip.selected {
+            background: #2980b9;
+            color: white;
+            border-color: #2980b9;
+        }
+
+        #patternFixPopover .pfp-more-reasons-btn {
+            background: none;
+            border: none;
+            color: #2980b9;
+            font-size: 0.72rem;
+            cursor: pointer;
+            padding: 0.1rem 0;
+            text-decoration: underline;
+        }
+
+        #patternFixPopover .pfp-expander.collapsed {
+            display: none;
+        }
+
+        #patternFixPopover textarea {
+            width: 100%;
+            min-height: 38px;
+            padding: 0.4rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 0.78rem;
+            resize: vertical;
+        }
+
+        #patternFixPopover textarea.required-missing {
+            border-color: #c0392b;
+        }
+
+        #patternFixPopover .pfp-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 4px;
+            margin-top: 0.5rem;
+        }
+
+        #patternFixPopover .pfp-buttons button {
+            padding: 0.4rem;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+
+        #patternFixPopover .pfp-buttons button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        #patternFixPopover .pfp-save {
+            grid-column: 1 / -1;
+            background: #8e44ad !important;
+            color: white;
+            border-color: #8e44ad !important;
+            font-weight: 600;
+        }
+
+        #patternFixPopover .pfp-status {
+            margin-top: 0.4rem;
+            font-size: 0.74rem;
+            min-height: 1em;
+        }
+
+        #patternFixPopover .pfp-status.error {
+            color: #c0392b;
+        }
+
+        #patternFixPopover .pfp-status.success {
+            color: #27ae60;
+        }
+
+        .similarity-bar {
+            height: 4px;
+            background: #ecf0f1;
+            margin-top: 0.5rem;
+            border-radius: 2px;
+        }
+
+        .similarity-bar .fill {
+            height: 100%;
+            background: #27ae60;
+            border-radius: 2px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #7f8c8d;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 3rem;
+            color: #7f8c8d;
+        }
+
+        .results-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid #ddd;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .results-toolbar .page-size-selector {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .results-toolbar .page-size-selector label {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+        }
+
+        .results-toolbar .page-size-selector select {
+            padding: 0.3rem 0.5rem;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 0.85rem;
+        }
+
+        .results-toolbar .page-info {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+        }
+
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .pagination-controls button {
+            padding: 0.4rem 0.8rem;
+            border: 1px solid #ccc;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .pagination-controls button:hover:not(:disabled) {
+            background: #3498db;
+            border-color: #3498db;
+            color: white;
+        }
+
+        .pagination-controls button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .pagination-controls .page-indicator {
+            font-size: 0.85rem;
+            color: #555;
+            padding: 0 0.5rem;
+        }
+
+        .upload-preview {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .upload-preview img {
+            height: 40px;
+            border-radius: 4px;
+        }
+
+        .upload-preview .remove {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        #imageInput {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>Find Your Stone <span
+                style="font-size:0.45em; color:#999; font-weight:normal; letter-spacing:0.3px;">Dataset: {{
+                active_dataset_id }}</span></h1>
+        <a href="/">Home</a>
+        {% if is_admin %}
+        <span
+            style="margin-left:auto; font-size:0.85rem; color:#bdc3c7; display: flex; align-items: center; gap: 1rem;">
+            <span>Pattern corrections this session: <span id="patternCorrectionSessionCount"
+                    style="color:#fff; font-weight:600;">0</span></span>
+            <a href="/admin/logout"
+                style="background-color: #e74c3c; color: white; padding: 0.3rem 0.8rem; border-radius: 4px; font-weight: bold; font-size: 0.85rem; transition: background-color 0.2s;"
+                onmouseover="this.style.backgroundColor='#c0392b'"
+                onmouseout="this.style.backgroundColor='#e74c3c'">Logout</a>
+        </span>
+        {% else %}
+        <a href="/admin/login?next={{ (request.url.path + ('?' + request.url.query if request.url.query else '')) | urlencode }}"
+            style="margin-left: auto; background-color: #2ecc71; color: white; padding: 0.3rem 0.8rem; border-radius: 4px; font-weight: bold; font-size: 0.85rem; transition: background-color 0.2s;"
+            onmouseover="this.style.backgroundColor='#27ae60'" onmouseout="this.style.backgroundColor='#2ecc71'">Admin
+            Login</a>
+        {% endif %}
+    </div>
+
+    <div class="search-bar">
+        <input type="text" id="searchQuery" placeholder="Search name / keyword / code...">
+        <input type="file" id="imageInput" accept="image/*">
+        <button class="btn-upload" onclick="document.getElementById('imageInput').click()">Upload Photo</button>
+        <div class="upload-preview" id="uploadPreview">
+            <img id="previewImg" src="" alt="Preview">
+            <span id="previewName"></span>
+            <button class="remove" onclick="clearImage()">&times;</button>
+        </div>
+        <button class="btn-primary" onclick="performSearch()">Search</button>
+        <button class="btn-secondary" onclick="resetSearch()">Reset</button>
+    </div>
+
+    <div class="main">
+        <div class="sidebar">
+            <h3>Filters</h3>
+
+            <h3>Primary Background Color</h3>
+            <div class="filter-group">
+                <div class="chips" id="baseColorChips">
+                    <div class="chip bc-chip" data-value="white">White <span class="bc-count"></span></div>
+                    <div class="chip bc-chip" data-value="grey">Grey <span class="bc-count"></span></div>
+                    <div class="chip bc-chip" data-value="beige">Beige <span class="bc-count"></span></div>
+                    <div class="chip bc-chip" data-value="brown">Brown <span class="bc-count"></span></div>
+                    <div class="chip bc-chip" data-value="yellow" style="border-color:#f1c40f;color:#b8860b;">Yellow /
+                        Gold <span class="bc-count"></span></div>
+                    <div class="chip bc-chip" data-value="black">Black <span class="bc-count"></span></div>
+                    <div class="chip bc-chip" data-value="red" style="border-color:#e74c3c;color:#e74c3c;">Red <span
+                            class="bc-count"></span></div>
+                    <div class="chip bc-chip" data-value="green" style="border-color:#27ae60;color:#27ae60;">Green <span
+                            class="bc-count"></span></div>
+                    <div class="chip bc-chip" data-value="pink" style="border-color:#e91e63;color:#e91e63;">Pink / Rose
+                        <span class="bc-count"></span>
+                    </div>
+                    <div class="chip bc-chip" data-value="blue" style="border-color:#0000ff;color:#0000ff;">Blue <span
+                            class="bc-count"></span></div>
+                    <div class="chip bc-chip" data-value="multi" style="border-color:#9b59b6;color:#9b59b6;">Multi <span
+                            class="bc-count"></span></div>
+                </div>
+
+            </div>
+
+            <h3>Pattern Family</h3>
+            <div class="filter-group">
+                <div class="chips" id="patternFamilyChips">
+                    <div class="chip pf-chip" data-value="uniform">Uniform <span class="pf-count"></span></div>
+                    <div class="chip pf-chip" data-value="cloudy">Cloudy <span class="pf-count"></span></div>
+                    <div class="chip pf-chip" data-value="linear">Linear <span class="pf-count"></span></div>
+                    <div class="chip pf-chip" data-value="webbed">Webbed <span class="pf-count"></span></div>
+                    <div class="chip pf-chip" data-value="bold_veined">Bold Veined <span class="pf-count"></span></div>
+                    <div class="chip pf-chip" data-value="breccia">Breccia <span class="pf-count"></span></div>
+                    <div class="chip pf-chip" data-value="veined">Veined <span class="pf-count"></span></div>
+                    <div class="chip pf-chip pf-chip-unlabeled" data-value="unlabeled" style="display:none;">Unlabeled
+                        <span class="pf-count"></span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="results">
+            <div class="results-header">
+                <h2>Results</h2>
+                <span id="resultsCount">0 stones found</span>
+            </div>
+            <div class="results-toolbar">
+                <div class="page-size-selector">
+                    <label for="pageSize">Per page:</label>
+                    <select id="pageSize" onchange="changePageSize(this.value)">
+                        <option value="10">10</option>
+                        <option value="24" selected>24</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+                <span class="page-info" id="pageInfo">Showing 0-0 of 0</span>
+                <div class="pagination-controls">
+                    <button id="prevPageBtn" onclick="goToPage(currentPage - 1)" disabled>← Prev</button>
+                    <span class="page-indicator" id="pageIndicator">Page 1 of 1</span>
+                    <button id="nextPageBtn" onclick="goToPage(currentPage + 1)" disabled>Next →</button>
+                </div>
+            </div>
+            <div id="resultsGrid" class="results-grid">
+                <div class="loading">Enter a search query or apply filters to find stones...</div>
+            </div>
+            <div class="results-toolbar" id="bottomPagination" style="display: none;">
+                <div></div>
+                <span class="page-info" id="pageInfoBottom">Showing 0-0 of 0</span>
+                <div class="pagination-controls">
+                    <button id="prevPageBtnBottom" onclick="goToPage(currentPage - 1)" disabled>← Prev</button>
+                    <span class="page-indicator" id="pageIndicatorBottom">Page 1 of 1</span>
+                    <button id="nextPageBtnBottom" onclick="goToPage(currentPage + 1)" disabled>Next →</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="colorFixPopover" role="dialog" aria-label="Fix color">
+        <div class="cfp-title" id="cfpTitle"></div>
+        <div class="cfp-current" id="cfpCurrent"></div>
+        <div class="cfp-label">Pick correct color</div>
+        <div class="cfp-palette" id="cfpPalette">
+            {% for color in base_color_chip_order %}
+            <div class="cfp-swatch color-chip {{ color }}{% if color in ['black','white','grey','gray'] %} neutral-base{% endif %}"
+                data-color="{{ color }}" title="{{ color }}"></div>
+            {% endfor %}
+        </div>
+        <div class="cfp-label">Reason (optional)</div>
+        <textarea id="cfpReason" placeholder="why?"></textarea>
+        <div class="cfp-buttons">
+            <button class="cfp-save" data-decision="correct" disabled>Save Color</button>
+            <button data-decision="cancel">Cancel</button>
+        </div>
+        <div class="cfp-status" id="cfpStatus"></div>
+    </div>
+
+    <div id="cfpFamilyOverlay" role="dialog" aria-labelledby="cfpFamilyTitle" aria-modal="true">
+        <div id="cfpFamilyModal">
+            <div class="cfp-fam-header">
+                <div class="cfp-fam-title" id="cfpFamilyTitle">Apply to similar stones?</div>
+                <p class="cfp-fam-intro" id="cfpFamilyIntro"></p>
+            </div>
+            <div class="cfp-fam-body" id="cfpFamilyBody"></div>
+            <div class="cfp-fam-footer">
+                <div class="cfp-fam-status" id="cfpFamilyStatus"></div>
+                <button type="button" class="cfp-fam-skip" data-fam-action="skip">Skip — save this stone only</button>
+                <button type="button" class="cfp-fam-apply" data-fam-action="apply">Apply to selected</button>
+            </div>
+        </div>
+    </div>
+    <div id="cfpToast" role="status" aria-live="polite"></div>
+
+    {% if is_admin %}
+    <div id="patternFixPopover" role="dialog" aria-label="Fix pattern">
+        <div class="pfp-title" id="pfpTitle"></div>
+        <div class="pfp-current" id="pfpCurrent"></div>
+        <div class="pfp-evidence" id="pfpEvidence"></div>
+        <div class="pfp-label">Pattern family</div>
+        <div class="pfp-pattern-chips" id="pfpPatternChips">
+            {% for pf in pattern_family_options %}
+            <div class="pfp-pchip" data-pattern="{{ pf }}">{{ pf.replace('_', ' ') }}</div>
+            {% endfor %}
+        </div>
+        <div class="pfp-label">Reason (optional)</div>
+        <textarea id="pfpNote" placeholder="why?"></textarea>
+        <div class="pfp-buttons">
+            <button class="pfp-save" data-decision="save" disabled>Save Correction</button>
+            <button data-decision="cancel">Cancel</button>
+        </div>
+        <div class="pfp-status" id="pfpStatus"></div>
+    </div>
+    {% endif %}
+
+    <div id="app-config" data-is-admin="{% if is_admin %}true{% else %}false{% endif %}"
+        data-pattern-family-options='{{ pattern_family_options | tojson if is_admin else "[]" }}'
+        style="display: none;"></div>
+
+    <script>
+        (function () {
+            const configEl = document.getElementById('app-config');
+            window.IS_ADMIN = configEl.dataset.isAdmin === 'true';
+            window.PATTERN_FAMILY_OPTIONS = JSON.parse(configEl.dataset.patternFamilyOptions || '[]');
+        })();
+    </script>
+
+    <script>
+        const STONE_IMG_PLACEHOLDER = 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201%201%22%3E%3Crect%20fill%3D%22%23e0e0e0%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3C%2Fsvg%3E';
+
+        let currentPage = 1;
+        let pageSize = 24;
+        let totalResults = 0;
+        let totalPages = 1;
+
+        let currentFilters = {
+            base_colors: [],
+            pattern_families: [],
+        };
+
+        let uploadedFile = null;
+
+        (function initFromUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+
+            const baseColor = params.get('base_color');
+            if (baseColor) {
+                currentFilters.base_colors = [baseColor];
+                document.querySelectorAll('#baseColorChips .chip').forEach(chip => {
+                    if (chip.dataset.value === baseColor) {
+                        chip.classList.add('active');
+                    }
+                });
+            }
+
+        })();
+
+        let _chipSearchTimer = null;
+
+        document.querySelectorAll('.chips .chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                chip.classList.toggle('active');
+                updateFiltersFromUI();
+                clearTimeout(_chipSearchTimer);
+                _chipSearchTimer = setTimeout(performSearch, 50);
+            });
+        });
+
+
+
+        document.getElementById('imageInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                uploadedFile = file;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('previewName').textContent = file.name;
+                    document.getElementById('uploadPreview').style.display = 'flex';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function clearImage() {
+            uploadedFile = null;
+            document.getElementById('imageInput').value = '';
+            document.getElementById('uploadPreview').style.display = 'none';
+        }
+
+        function updateFiltersFromUI() {
+            currentFilters.base_colors = [];
+            document.querySelectorAll('#baseColorChips .chip.active').forEach(c => {
+                currentFilters.base_colors.push(c.dataset.value);
+            });
+
+            currentFilters.pattern_families = [];
+            document.querySelectorAll('#patternFamilyChips .chip.active').forEach(c => {
+                currentFilters.pattern_families.push(c.dataset.value);
+            });
+
+        }
+
+        async function performSearch(resetPage = true) {
+            updateFiltersFromUI();
+            const query = document.getElementById('searchQuery').value;
+
+            if (resetPage) {
+                currentPage = 1;
+            }
+
+            const offset = (currentPage - 1) * pageSize;
+
+            document.getElementById('resultsGrid').innerHTML = '<div class="loading">Searching...</div>';
+
+            try {
+                let response;
+
+                if (uploadedFile) {
+                    const formData = new FormData();
+                    formData.append('file', uploadedFile);
+                    formData.append('q', query);
+                    formData.append('filters_json', JSON.stringify(currentFilters));
+                    formData.append('limit', pageSize);
+                    formData.append('offset', offset);
+                    const byImgUrl = '/api/search-v3/by-image';
+                    response = await fetch(byImgUrl, {
+                        method: 'POST',
+                        body: formData
+                    });
+                } else {
+                    const searchPayload = {
+                        q: query,
+                        filters: {
+                            base_colors: currentFilters.base_colors,
+                            pattern_families: currentFilters.pattern_families,
+                        },
+                        sort: 'best_match',
+                        limit: pageSize,
+                        offset: offset
+                    };
+                    const searchUrl = '/api/search-v3';
+                    response = await fetch(searchUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(searchPayload)
+                    });
+                }
+
+                const data = await response.json();
+                renderResults(data, offset);
+            } catch (err) {
+                document.getElementById('resultsGrid').innerHTML = '<div class="no-results">Search failed: ' + err.message + '</div>';
+            }
+        }
+
+        function changePageSize(newSize) {
+            pageSize = parseInt(newSize);
+            currentPage = 1;
+            performSearch(false);
+        }
+
+        function goToPage(page) {
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            performSearch(false);
+            document.querySelector('.results').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function updatePaginationUI(offset, resultsOnPage) {
+            const start = totalResults > 0 ? offset + 1 : 0;
+            const end = offset + resultsOnPage;
+
+            const pageInfoText = `Showing ${start}-${end} of ${totalResults}`;
+            const pageIndicatorText = `Page ${currentPage} of ${totalPages}`;
+
+            document.getElementById('pageInfo').textContent = pageInfoText;
+            document.getElementById('pageIndicator').textContent = pageIndicatorText;
+            document.getElementById('prevPageBtn').disabled = currentPage <= 1;
+            document.getElementById('nextPageBtn').disabled = currentPage >= totalPages;
+
+            document.getElementById('pageInfoBottom').textContent = pageInfoText;
+            document.getElementById('pageIndicatorBottom').textContent = pageIndicatorText;
+            document.getElementById('prevPageBtnBottom').disabled = currentPage <= 1;
+            document.getElementById('nextPageBtnBottom').disabled = currentPage >= totalPages;
+
+            document.getElementById('bottomPagination').style.display = totalResults > 0 ? 'flex' : 'none';
+        }
+
+        function navigateToStone(stoneId) {
+            window.location.href = '/similar/' + encodeURIComponent(stoneId);
+        }
+
+        function renderResults(data, offset = 0) {
+            const grid = document.getElementById('resultsGrid');
+            const count = document.getElementById('resultsCount');
+
+            totalResults = data.total;
+            totalPages = Math.ceil(totalResults / pageSize);
+            if (totalPages < 1) totalPages = 1;
+
+            count.textContent = `${data.total} stones found (${data.latency_ms.toFixed(0)}ms)${data.image_used ? ' - Visual Search' : ''}`;
+
+            updatePaginationUI(offset, data.results ? data.results.length : 0);
+
+            if (!data.results || data.results.length === 0) {
+                grid.innerHTML = '<div class="no-results">No stones found. Try adjusting your filters.</div>';
+                document.getElementById('bottomPagination').style.display = 'none';
+                return;
+            }
+
+            // Task #390 — Smart-mode tier sections.  When the backend
+            // returns meta.smart_tier_counts and per-result match_tier,
+            // group the page into three sections with headers.  No
+            // change to card markup or styling — just section dividers.
+            const tierCounts = data.meta && data.meta.smart_tier_counts ? data.meta.smart_tier_counts : null;
+            const hasTiers = !!tierCounts && data.results.some(s => s.match_tier);
+            const tierLabels = {
+                1: ['Colour + Pattern Match', tierCounts ? tierCounts.tier_1_both : 0],
+                2: ['Same Colour, Different Pattern', tierCounts ? tierCounts.tier_2_colour_only : 0],
+                3: ['Same Pattern, Different Colour', tierCounts ? tierCounts.tier_3_pattern_only : 0],
+            };
+            const renderCard = (stone, idx) => `
+                <div class="stone-card" data-stone-id="${stone.company_stone_id}" data-stone-name="${(stone.stone_name || '').replace(/"/g, '&quot;')}" data-current-color="${((stone.base_color || '') + '').toLowerCase()}" data-current-pattern="${((stone.pattern_family || '') + '').toLowerCase()}" data-position="${idx}" onclick="navigateToStone('${stone.company_stone_id}')" style="cursor:pointer;">
+                    <img src="${stone.thumbnail_url || STONE_IMG_PLACEHOLDER}" alt="${stone.stone_name || stone.company_stone_id}" loading="lazy" onerror="this.onerror=null;this.src='${STONE_IMG_PLACEHOLDER}'" data-img-url="${stone.thumbnail_url || ''}">
+                    <div class="info">
+                        <div class="name">${stone.stone_name || 'Unknown'}</div>
+                        <div class="id">${stone.batch_id || stone.company_stone_id}</div>
+                        <div class="badges">
+                            ${window.IS_ADMIN ? `<span class="pattern-chip-display" data-pattern-display title="Pattern family">${(stone.pattern_family || 'unlabeled').replace('_', ' ')}</span>` : ''}
+                            ${(() => { const _bt = (stone.dominant_tone || '').toLowerCase(); return _bt && _bt !== 'neutral' ? `<span class="badge badge-tone badge-tone-${_bt}" title="Tone: ${_bt}">${_bt.toUpperCase()}</span>` : ''; })()}
+                        </div>
+                        <div class="tags-row">
+                            ${(() => {
+                    const tone = (stone.dominant_tone || '').toLowerCase();
+                    const toneActive = tone && tone !== 'neutral';
+                    const swatchVal = toneActive ? tone : (stone.base_color || '').toLowerCase();
+                    if (!swatchVal) return '';
+                    const isNeutralBase = !toneActive && ['black', 'white', 'grey', 'gray'].includes(swatchVal);
+                    const chipClass = isNeutralBase ? `color-chip neutral-base ${swatchVal}` : `color-chip ${swatchVal}`;
+                    const swatchTitle = toneActive ? `Tone: ${stone.dominant_tone}` : stone.base_color;
+                    return `<div class="${chipClass}" title="${swatchTitle}"></div>`;
+                })()}
+                            ${stone.vein_intensity ? `<span class="vein-icon" title="${stone.vein_intensity}">${getVeinIcon(stone.vein_intensity)}</span>` : ''}
+                            ${(() => {
+                    const baseColor = (stone.base_color || '').toLowerCase();
+                    const isNeutralBase = ['black', 'white', 'grey', 'gray'].includes(baseColor);
+                    if (isNeutralBase) return '';
+                    return `<div class="accent-dots">${(stone.accent_colors || []).slice(0, 3).map(a => `<div class="accent-dot" style="background: ${getAccentColor(a.color)}" title="${a.color}"></div>`).join('')}</div>`;
+                })()}
+                        </div>
+                        ${stone.similarity_score !== null ? `
+                            <div class="similarity-bar">
+                                <div class="fill" style="width: ${stone.similarity_score * 100}%"></div>
+                            </div>
+                        ` : ''}
+                        <div class="card-actions">
+                            <button onclick="event.stopPropagation(); navigateToStone('${stone.company_stone_id}')">Similar</button>
+                            <button class="fix-color-btn" title="Fix color" onclick="event.stopPropagation(); openColorFixPopover(this)">🎨</button>
+                            ${window.IS_ADMIN ? `<button class="fix-pattern-btn" title="Fix pattern" onclick="event.stopPropagation(); openPatternFixPopover(this)">🧬</button>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            if (hasTiers) {
+                // Results are already sorted by (match_tier, -final_score)
+                // server-side, so a single forward scan emits sections in
+                // the right order without re-sorting the page payload.
+                const groups = { 1: [], 2: [], 3: [] };
+                data.results.forEach((s, idx) => {
+                    const t = s.match_tier || 3;
+                    (groups[t] || groups[3]).push(renderCard(s, idx));
+                });
+                const sections = [];
+                const titleCase = (s) => (s || '').toString().replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                // Task #419 — when the cohort-wide tier_1 count is zero
+                // (not just empty on this page), surface a placeholder
+                // header above Tier 2 so buyers know they're seeing
+                // closest alternatives, not a silent filter drop.
+                const emitEmptyTier1Placeholder = (
+                    tierCounts && tierCounts.tier_1_both === 0 && groups[1].length === 0
+                );
+                [1, 2, 3].forEach(t => {
+                    if (groups[t].length === 0) {
+                        if (t === 1 && emitEmptyTier1Placeholder) {
+                            const colorLabel = titleCase((currentFilters.base_colors || [])[0] || 'colour');
+                            const patternLabel = titleCase((currentFilters.pattern_families || [])[0] || 'pattern');
+                            sections.push(
+                                `<div class="tier-section-header" data-tier="1-empty" `
+                                + `style="grid-column: 1 / -1; padding: 0.75rem 0 0.25rem; `
+                                + `font-weight: 600; color: #444; border-bottom: 1px solid #e5e5e5; `
+                                + `margin-top: 0;">`
+                                + `No exact ${colorLabel} + ${patternLabel} matches in current catalog `
+                                + `<span style="font-weight:400; color:#888;">— showing closest alternatives</span></div>`
+                            );
+                        }
+                        return;
+                    }
+                    const [label, total] = tierLabels[t];
+                    sections.push(
+                        `<div class="tier-section-header" data-tier="${t}" `
+                        + `style="grid-column: 1 / -1; padding: 0.75rem 0 0.25rem; `
+                        + `font-weight: 600; color: #444; border-bottom: 1px solid #e5e5e5; `
+                        + `margin-top: ${t === 1 ? '0' : '0.5rem'};">`
+                        + `${label} <span style="font-weight:400; color:#888;">`
+                        + `(${groups[t].length} on this page${total ? ` of ${total}` : ''})</span></div>`
+                    );
+                    sections.push(groups[t].join(''));
+                });
+                grid.innerHTML = sections.join('');
+            } else {
+                grid.innerHTML = data.results.map(renderCard).join('');
+            }
+
+            updatePatternFamilyFacets(data);
+            updateBaseColorFacets(data);
+        }
+
+        function updateBaseColorFacets(data) {
+            const facets = data.base_color_facets || {};
+            document.querySelectorAll('#baseColorChips .bc-chip').forEach(chip => {
+                const val = chip.dataset.value;
+                const cnt = facets[val] || 0;
+                const countEl = chip.querySelector('.bc-count');
+                countEl.textContent = cnt > 0 ? `(${cnt})` : '(0)';
+                if (cnt === 0 && !chip.classList.contains('active')) {
+                    chip.classList.add('disabled');
+                } else {
+                    chip.classList.remove('disabled');
+                }
+            });
+        }
+
+        function updatePatternFamilyFacets(data) {
+            const facets = data.pattern_family_facets || {};
+            const unlabeledCnt = data.pattern_family_unlabeled || 0;
+
+            document.querySelectorAll('#patternFamilyChips .pf-chip').forEach(chip => {
+                const val = chip.dataset.value;
+                const isUnlabeled = val === 'unlabeled';
+                const cnt = isUnlabeled ? unlabeledCnt : (facets[val] || 0);
+                const countEl = chip.querySelector('.pf-count');
+                countEl.textContent = cnt > 0 ? `(${cnt})` : '(0)';
+
+                if (isUnlabeled) {
+                    // Hide the Unlabeled chip entirely when no unlabeled stones exist
+                    // in the current result set, unless the user has it actively selected.
+                    if (cnt === 0 && !chip.classList.contains('active')) {
+                        chip.style.display = 'none';
+                    } else {
+                        chip.style.display = '';
+                    }
+                }
+
+                if (cnt === 0 && !chip.classList.contains('active')) {
+                    chip.classList.add('disabled');
+                } else {
+                    chip.classList.remove('disabled');
+                }
+            });
+
+        }
+
+        function getVeinIcon(intensity) {
+            const icons = { none: '', soft: '~', medium: '~~', strong: '~~~' };
+            return icons[intensity] || '';
+        }
+
+        function getAccentColor(name) {
+            const colors = {
+                green: '#27ae60', gold: '#f1c40f', red: '#e74c3c', pink: '#ff69b4',
+                yellow: '#f39c12', blue: '#3498db', purple: '#9b59b6', orange: '#e67e22'
+            };
+            return colors[name.toLowerCase()] || '#95a5a6';
+        }
+
+        function resetSearch() {
+            document.getElementById('searchQuery').value = '';
+            clearImage();
+
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+
+
+            currentFilters = {
+                base_colors: [],
+                pattern_families: [],
+            };
+
+            document.querySelectorAll('#patternFamilyChips .pf-chip').forEach(c => {
+                c.classList.remove('active', 'disabled');
+                const countEl = c.querySelector('.pf-count');
+                if (countEl) countEl.textContent = '';
+                if (c.dataset.value === 'unlabeled') {
+                    c.style.display = 'none';
+                }
+            });
+            document.querySelectorAll('#baseColorChips .bc-chip').forEach(c => {
+                c.classList.remove('disabled');
+                const countEl = c.querySelector('.bc-count');
+                if (countEl) countEl.textContent = '';
+            });
+
+            document.getElementById('resultsGrid').innerHTML = '<div class="loading">Enter a search query or apply filters to find stones...</div>';
+            document.getElementById('resultsCount').textContent = '0 stones found';
+        }
+
+        document.getElementById('searchQuery').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') { performSearch(); }
+        });
+
+        // ---------- Color-fix popover ----------
+        (function () {
+            const pop = document.getElementById('colorFixPopover');
+            const titleEl = document.getElementById('cfpTitle');
+            const currentEl = document.getElementById('cfpCurrent');
+            const reasonEl = document.getElementById('cfpReason');
+            const statusEl = document.getElementById('cfpStatus');
+            const palette = document.getElementById('cfpPalette');
+            const saveBtn = pop.querySelector('.cfp-save');
+            let activeBtn = null;
+            let activeStone = null;
+            let selectedColor = null;
+            let submitting = false;
+
+            function setStatus(msg, kind) {
+                statusEl.textContent = msg || '';
+                statusEl.className = 'cfp-status' + (kind ? ' ' + kind : '');
+            }
+
+            function clearSelection() {
+                selectedColor = null;
+                palette.querySelectorAll('.cfp-swatch').forEach(s => s.classList.remove('selected'));
+                saveBtn.disabled = true;
+            }
+
+            function closePopover() {
+                pop.classList.remove('visible');
+                if (activeBtn) activeBtn.classList.remove('active');
+                activeBtn = null;
+                activeStone = null;
+                clearSelection();
+                setStatus('');
+                reasonEl.value = '';
+            }
+            window.closeColorFixPopover = closePopover;
+
+            function positionPopover(anchorBtn) {
+                const rect = anchorBtn.getBoundingClientRect();
+                const popW = 280;
+                const popH = pop.offsetHeight || 320;
+                let left = rect.left + window.scrollX;
+                let top = rect.bottom + window.scrollY + 6;
+                if (left + popW > window.scrollX + window.innerWidth - 8) {
+                    left = window.scrollX + window.innerWidth - popW - 8;
+                }
+                if (left < window.scrollX + 8) left = window.scrollX + 8;
+                if (rect.bottom + popH > window.innerHeight - 8 && rect.top > popH) {
+                    top = rect.top + window.scrollY - popH - 6;
+                }
+                pop.style.left = left + 'px';
+                pop.style.top = top + 'px';
+            }
+
+            window.openColorFixPopover = function (btn) {
+                if (activeBtn === btn && pop.classList.contains('visible')) {
+                    closePopover();
+                    return;
+                }
+                closePopover();
+                const card = btn.closest('.stone-card');
+                if (!card) return;
+                const stoneId = card.dataset.stoneId || '';
+                const stoneName = card.dataset.stoneName || '';
+                const currentColor = (card.dataset.currentColor || '').toLowerCase();
+                activeBtn = btn;
+                btn.classList.add('active');
+                activeStone = { id: stoneId, name: stoneName, color: currentColor };
+
+                titleEl.textContent = stoneName || stoneId;
+                titleEl.title = (stoneName || stoneId) + ' (' + stoneId + ')';
+                currentEl.textContent = '';
+                if (currentColor) {
+                    const isNeutral = ['black', 'white', 'grey', 'gray'].includes(currentColor);
+                    const cls = isNeutral ? `color-chip neutral-base ${currentColor}` : `color-chip ${currentColor}`;
+                    currentEl.appendChild(document.createTextNode('Current: '));
+                    const chip = document.createElement('span');
+                    chip.className = cls;
+                    currentEl.appendChild(chip);
+                    currentEl.appendChild(document.createTextNode(' ' + currentColor));
+                } else {
+                    currentEl.textContent = 'Current: (none)';
+                }
+                clearSelection();
+                reasonEl.value = '';
+                setStatus('');
+                pop.classList.add('visible');
+                positionPopover(btn);
+            };
+
+            palette.querySelectorAll('.cfp-swatch').forEach(sw => {
+                sw.addEventListener('click', () => {
+                    palette.querySelectorAll('.cfp-swatch').forEach(s => s.classList.remove('selected'));
+                    sw.classList.add('selected');
+                    selectedColor = sw.dataset.color;
+                    saveBtn.disabled = false;
+                });
+            });
+
+            // Update the anchor stone-card UI in place after a successful save.
+            function updateAnchorCardUI(color) {
+                if (!activeBtn) return;
+                const card = activeBtn.closest('.stone-card');
+                if (!card) return;
+                card.dataset.currentColor = color;
+                const chip = card.querySelector('.tags-row .color-chip');
+                const isNeutral = ['black', 'white', 'grey', 'gray'].includes(color);
+                const newCls = isNeutral
+                    ? `color-chip neutral-base ${color}`
+                    : `color-chip ${color}`;
+                if (chip) {
+                    chip.className = newCls;
+                    chip.title = color;
+                } else {
+                    const tagsRow = card.querySelector('.tags-row');
+                    if (tagsRow) {
+                        const newChip = document.createElement('div');
+                        newChip.className = newCls;
+                        newChip.title = color;
+                        tagsRow.insertBefore(newChip, tagsRow.firstChild);
+                    }
+                }
+                if (activeStone) activeStone.color = color;
+            }
+
+            // POST a single decision to the existing endpoint.  Returns the
+            // parsed body and an `ok` flag; never throws on HTTP error.
+            async function postDecision({ csid, decision, color, reason }) {
+                const payload = {
+                    company_stone_id: csid,
+                    field_name: "base_color",
+                    override_value: color,
+                    action_type: "CORRECTION",
+                };
+                if (reason) payload.reviewer_note = reason;
+
+                try {
+                    const resp = await fetch('/api/admin/correction/stock', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload),
+                    });
+                    let body = null;
+                    try { body = await resp.json(); } catch (e) { /* ignore */ }
+                    return { ok: resp.ok, status: resp.status, body };
+                } catch (err) {
+                    return { ok: false, status: 0, body: null, error: err.message };
+                }
+            }
+
+            function formatDecisionError(result) {
+                if (result.error) return 'Network error: ' + result.error;
+                const detail = result.body && result.body.detail;
+                if (typeof detail === 'string') return detail;
+                if (detail) return JSON.stringify(detail);
+                return 'HTTP ' + result.status;
+            }
+
+            // ---------- Family propagation modal (Task #341) ----------
+            const famOverlay = document.getElementById('cfpFamilyOverlay');
+            const famBody = document.getElementById('cfpFamilyBody');
+            const famIntro = document.getElementById('cfpFamilyIntro');
+            const famStatus = document.getElementById('cfpFamilyStatus');
+            const famApplyBtn = famOverlay.querySelector('.cfp-fam-apply');
+            const famSkipBtn = famOverlay.querySelector('.cfp-fam-skip');
+            const toastEl = document.getElementById('cfpToast');
+            let famPending = null; // { anchorCsid, anchorName, color, reason, siblings }
+
+            function showToast(msg, kind) {
+                toastEl.textContent = msg;
+                toastEl.className = '';
+                toastEl.classList.add('visible');
+                if (kind) toastEl.classList.add(kind);
+                setTimeout(() => { toastEl.classList.remove('visible'); }, 3200);
+            }
+
+            function colorChipHtml(color) {
+                if (!color) return '<span class="color-chip" style="background:#eee;border:1px dashed #bbb"></span>';
+                const isNeutral = ['black', 'white', 'grey', 'gray'].includes(color);
+                const cls = isNeutral ? `color-chip neutral-base ${color}` : `color-chip ${color}`;
+                return `<span class="${cls}" title="${color}"></span>`;
+            }
+
+            function closeFamilyModal() {
+                famOverlay.classList.remove('visible');
+                famBody.innerHTML = '';
+                famStatus.textContent = '';
+                famStatus.className = 'cfp-fam-status';
+                famApplyBtn.disabled = false;
+                famSkipBtn.disabled = false;
+                famPending = null;
+            }
+
+            function escapeHtml(s) {
+                return String(s == null ? '' : s)
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            }
+
+            function openFamilyModal({ anchorCsid, anchorName, color, reason, siblings }) {
+                famPending = { anchorCsid, anchorName, color, reason, siblings };
+                famIntro.textContent = `We found ${siblings.length} other stock${siblings.length === 1 ? '' : 's'} from the same vendor that appear to be the same stone. Apply ${color} to all of them?`;
+                famBody.innerHTML = siblings.map((s, idx) => {
+                    const thumb = s.thumbnail_url
+                        ? `<img class="cfp-fam-thumb" src="${escapeHtml(s.thumbnail_url)}" alt="" loading="lazy">`
+                        : '<div class="cfp-fam-thumb"></div>';
+                    const currentChip = colorChipHtml(s.current_color);
+                    const proposedChip = colorChipHtml(color);
+                    const sourceLbl = s.color_source ? `<span class="cfp-fam-source">${escapeHtml(s.color_source)}</span>` : '';
+                    const currentTxt = s.current_color ? escapeHtml(s.current_color) : '(none)';
+                    return `
+                        <div class="cfp-fam-row">
+                            ${thumb}
+                            <div class="cfp-fam-meta">
+                                <div class="cfp-fam-name">${escapeHtml(s.stone_name)}</div>
+                                <div class="cfp-fam-sub">${escapeHtml(s.vendor_name)}<span class="cfp-fam-score">match ${s.match_score}</span></div>
+                                <div class="cfp-fam-colors">${currentChip}<span>${currentTxt}</span>${sourceLbl}<span style="margin:0 .25rem">→</span>${proposedChip}<span>${escapeHtml(color)}</span></div>
+                            </div>
+                            <div class="cfp-fam-check">
+                                <input type="checkbox" id="cfpFamChk_${idx}" data-csid="${escapeHtml(s.company_stone_id)}" checked>
+                                <label for="cfpFamChk_${idx}">Apply</label>
+                            </div>
+                        </div>`;
+                }).join('');
+                famApplyBtn.disabled = false;
+                famSkipBtn.disabled = false;
+                famStatus.textContent = '';
+                famStatus.className = 'cfp-fam-status';
+                famOverlay.classList.add('visible');
+            }
+
+            async function applyPropagation({ skipSiblings }) {
+                if (!famPending) return;
+                const { anchorCsid, color, reason, siblings } = famPending;
+                famApplyBtn.disabled = true;
+                famSkipBtn.disabled = true;
+
+                // Anchor first — uses the admin's own reason if any.
+                famStatus.textContent = `Saving anchor…`;
+                famStatus.className = 'cfp-fam-status';
+                const anchorRes = await postDecision({
+                    csid: anchorCsid, decision: 'correct', color, reason
+                });
+                if (!anchorRes.ok) {
+                    famStatus.textContent = 'Anchor save failed: ' + formatDecisionError(anchorRes);
+                    famStatus.className = 'cfp-fam-status error';
+                    famApplyBtn.disabled = false;
+                    famSkipBtn.disabled = false;
+                    return;
+                }
+                updateAnchorCardUI(color);
+
+                let appliedCount = 1;
+                let failedCount = 0;
+                const failures = [];
+                if (!skipSiblings) {
+                    const checked = Array.from(famBody.querySelectorAll('input[type=checkbox]:checked'))
+                        .map(el => el.dataset.csid);
+                    const sibMap = new Map(siblings.map(s => [s.company_stone_id, s]));
+                    for (let i = 0; i < checked.length; i++) {
+                        const sibCsid = checked[i];
+                        famStatus.textContent = `Propagating ${i + 1}/${checked.length}…`;
+                        const propReason = `propagated_from: ${anchorCsid}` + (reason ? ` | ${reason}` : '');
+                        const r = await postDecision({
+                            csid: sibCsid, decision: 'correct', color, reason: propReason
+                        });
+                        if (r.ok) {
+                            appliedCount += 1;
+                            // Update any visible card for this sibling on the page.
+                            const card = document.querySelector(`.stone-card[data-stone-id="${CSS.escape(sibCsid)}"]`);
+                            if (card) {
+                                const isNeutral = ['black', 'white', 'grey', 'gray'].includes(color);
+                                const newCls = isNeutral ? `color-chip neutral-base ${color}` : `color-chip ${color}`;
+                                card.dataset.currentColor = color;
+                                const chip = card.querySelector('.tags-row .color-chip');
+                                if (chip) {
+                                    chip.className = newCls;
+                                    chip.title = color;
+                                }
+                            }
+                        } else {
+                            failedCount += 1;
+                            const meta = sibMap.get(sibCsid);
+                            failures.push((meta ? meta.stone_name : sibCsid) + ': ' + formatDecisionError(r));
+                        }
+                    }
+                }
+
+                if (failedCount === 0) {
+                    closeFamilyModal();
+                    showToast(`Colour updated on ${appliedCount} stone${appliedCount === 1 ? '' : 's'}`, 'success');
+                    setStatus('Saved', 'success');
+                    setTimeout(() => { if (pop.classList.contains('visible')) closePopover(); }, 400);
+                } else {
+                    famStatus.textContent = `Applied ${appliedCount}, failed ${failedCount}: ${failures.join('; ')}`;
+                    famStatus.className = 'cfp-fam-status error';
+                    famApplyBtn.disabled = true;
+                    famSkipBtn.disabled = false;
+                    showToast(`Colour updated on ${appliedCount} stones (${failedCount} failed)`, 'error');
+                }
+            }
+
+            famApplyBtn.addEventListener('click', () => applyPropagation({ skipSiblings: false }));
+            famSkipBtn.addEventListener('click', () => applyPropagation({ skipSiblings: true }));
+            famOverlay.addEventListener('click', (e) => {
+                if (e.target === famOverlay && !famApplyBtn.disabled) closeFamilyModal();
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && famOverlay.classList.contains('visible') && !famApplyBtn.disabled) {
+                    closeFamilyModal();
+                }
+            });
+
+            // ---------- Main save handler ----------
+            pop.querySelectorAll('.cfp-buttons button').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    if (submitting || !activeStone) return;
+                    const decision = btn.dataset.decision;
+                    if (decision === 'cancel') { closePopover(); return; }
+                    if (decision === 'correct' && !selectedColor) return;
+
+                    const reason = reasonEl.value.trim();
+                    submitting = true;
+                    pop.querySelectorAll('.cfp-buttons button').forEach(b => b.disabled = true);
+                    setStatus('Saving…');
+
+                    try {
+                        // For 'correct', we used to check for same-vendor siblings here.
+                        // Since the family-preview endpoint was deprecated during the Phase 0 DDD migration,
+                        // we bypass it and proceed directly to a single-stone save.
+                        let preview = null;
+
+                        if (preview && preview.sibling_count >= 1) {
+                            // Open modal and stop the inline flow.  The modal owns the writes.
+                            setStatus('');
+                            openFamilyModal({
+                                anchorCsid: activeStone.id,
+                                anchorName: activeStone.name,
+                                color: selectedColor,
+                                reason: reason,
+                                siblings: preview.siblings,
+                            });
+                            pop.querySelectorAll('.cfp-buttons button').forEach(b => b.disabled = false);
+                            saveBtn.disabled = !selectedColor;
+                            submitting = false;
+                            return;
+                        }
+
+                        // No siblings or non-'correct' decision — preserve original single-stone flow.
+                        const result = await postDecision({
+                            csid: activeStone.id,
+                            decision: decision,
+                            color: selectedColor,
+                            reason: reason,
+                        });
+                        if (result.ok) {
+                            setStatus('Saved', 'success');
+                            if (decision === 'correct') {
+                                updateAnchorCardUI(selectedColor);
+                            }
+                            setTimeout(() => { if (pop.classList.contains('visible')) closePopover(); }, 500);
+                        } else {
+                            setStatus(formatDecisionError(result), 'error');
+                            pop.querySelectorAll('.cfp-buttons button').forEach(b => b.disabled = false);
+                            saveBtn.disabled = !selectedColor;
+                        }
+                    } catch (err) {
+                        setStatus('Network error: ' + err.message, 'error');
+                        pop.querySelectorAll('.cfp-buttons button').forEach(b => b.disabled = false);
+                        saveBtn.disabled = !selectedColor;
+                    } finally {
+                        submitting = false;
+                    }
+                });
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!pop.classList.contains('visible')) return;
+                if (pop.contains(e.target)) return;
+                if (activeBtn && activeBtn.contains(e.target)) return;
+                closePopover();
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && pop.classList.contains('visible')) {
+                    closePopover();
+                }
+            });
+        })();
+
+        // ---------- Pattern-fix popover (Phase 1, admin only) ----------
+        if (window.IS_ADMIN) (function () {
+            const pop = document.getElementById('patternFixPopover');
+            if (!pop) return;
+            const titleEl = document.getElementById('pfpTitle');
+            const currentEl = document.getElementById('pfpCurrent');
+            const evidenceEl = document.getElementById('pfpEvidence');
+            const patternChips = document.getElementById('pfpPatternChips');
+            const noteEl = document.getElementById('pfpNote');
+            const statusEl = document.getElementById('pfpStatus');
+            const saveBtn = pop.querySelector('.pfp-save');
+            const counterEl = document.getElementById('patternCorrectionSessionCount');
+            let activeBtn = null;
+            let activeStone = null;
+            let selectedPattern = null;
+            let lastCorrectionStoneId = null;
+            let submitting = false;
+            const SESSION_ID = (crypto && crypto.randomUUID)
+                ? crypto.randomUUID()
+                : 'pfx-' + Math.random().toString(36).slice(2, 10) + '-' + Date.now();
+
+            function setStatus(msg, kind) {
+                statusEl.textContent = msg || '';
+                statusEl.className = 'pfp-status' + (kind ? ' ' + kind : '');
+            }
+
+            function refreshSaveState() {
+                if (!selectedPattern) { saveBtn.disabled = true; return; }
+                const sameAsCurrent = activeStone && selectedPattern === activeStone.pattern;
+                saveBtn.disabled = sameAsCurrent;
+            }
+
+            function clearSelection() {
+                selectedPattern = null;
+                patternChips.querySelectorAll('.pfp-pchip').forEach(c => c.classList.remove('selected'));
+                noteEl.value = '';
+                refreshSaveState();
+            }
+
+            function closePopover() {
+                pop.classList.remove('visible');
+                if (activeBtn) activeBtn.classList.remove('active');
+                activeBtn = null;
+                activeStone = null;
+                clearSelection();
+                setStatus('');
+            }
+            window.closePatternFixPopover = closePopover;
+
+            function positionPopover(anchorBtn) {
+                const rect = anchorBtn.getBoundingClientRect();
+                const popW = 320;
+                const popH = pop.offsetHeight || 360;
+                let left = rect.left + window.scrollX;
+                let top = rect.bottom + window.scrollY + 6;
+                if (left + popW > window.scrollX + window.innerWidth - 8) {
+                    left = window.scrollX + window.innerWidth - popW - 8;
+                }
+                if (left < window.scrollX + 8) left = window.scrollX + 8;
+                if (rect.bottom + popH > window.innerHeight - 8 && rect.top > popH) {
+                    top = rect.top + window.scrollY - popH - 6;
+                }
+                pop.style.left = left + 'px';
+                pop.style.top = top + 'px';
+            }
+
+            window.openPatternFixPopover = function (btn) {
+                if (activeBtn === btn && pop.classList.contains('visible')) {
+                    closePopover();
+                    return;
+                }
+                closePopover();
+                const card = btn.closest('.stone-card');
+                if (!card) return;
+                const stoneId = card.dataset.stoneId || '';
+                const stoneName = card.dataset.stoneName || '';
+                const currentPattern = (card.dataset.currentPattern || '').toLowerCase();
+                activeBtn = btn;
+                btn.classList.add('active');
+                activeStone = { id: stoneId, name: stoneName, pattern: currentPattern };
+
+                titleEl.textContent = stoneName || stoneId;
+                titleEl.title = (stoneName || stoneId) + ' (' + stoneId + ')';
+                currentEl.textContent = 'Current pattern: ' + (currentPattern || '(none)');
+
+                // Render primary image (re-uses card thumbnail).
+                evidenceEl.innerHTML = '';
+                const cardImg = card.querySelector('img');
+                const imgUrl = cardImg ? (cardImg.dataset.imgUrl || cardImg.src) : '';
+                if (imgUrl) {
+                    const im = document.createElement('img');
+                    im.src = imgUrl;
+                    im.alt = stoneName || stoneId;
+                    im.style.cssText = 'width:100%;height:90px;object-fit:cover;border-radius:4px;margin-bottom:0.4rem;';
+                    evidenceEl.appendChild(im);
+                }
+                const loadingRow = document.createElement('div');
+                loadingRow.className = 'pfp-ev-row';
+                loadingRow.textContent = 'Loading evidence…';
+                evidenceEl.appendChild(loadingRow);
+
+                clearSelection();
+                setStatus('');
+                pop.classList.add('visible');
+                positionPopover(btn);
+                noteEl.focus();
+
+                // Fetch server-authoritative evidence (source tier + AI/agg rows).
+                fetch('/api/admin/correction/stock/' + encodeURIComponent(stoneId) + '/pattern-evidence')
+                    .then(r => r.ok ? r.json() : null)
+                    .then(ev => {
+                        if (!ev || activeStone === null || activeStone.id !== stoneId) return;
+                        loadingRow.remove();
+                        const tier = ev.source_tier || 'missing';
+                        const eff = ev.effective_pattern_family || '(none)';
+                        const tierRow = document.createElement('div');
+                        tierRow.className = 'pfp-ev-row';
+                        tierRow.innerHTML = '<strong>Effective:</strong> ' + eff + ' <em>(source: ' + tier + ')</em>';
+                        evidenceEl.appendChild(tierRow);
+                        if (ev.ai_pattern_family && ev.ai_pattern_family !== ev.effective_pattern_family) {
+                            const aiRow = document.createElement('div');
+                            aiRow.className = 'pfp-ev-row';
+                            aiRow.textContent = 'AI: ' + ev.ai_pattern_family;
+                            evidenceEl.appendChild(aiRow);
+                        }
+                        if (ev.agg_pattern_family && ev.agg_pattern_family !== ev.effective_pattern_family) {
+                            const aggRow = document.createElement('div');
+                            aggRow.className = 'pfp-ev-row';
+                            aggRow.textContent = 'Aggregated: ' + ev.agg_pattern_family;
+                            evidenceEl.appendChild(aggRow);
+                        }
+                        positionPopover(btn);
+                    })
+                    .catch(() => { /* silent — evidence is supplemental */ });
+            };
+
+            patternChips.querySelectorAll('.pfp-pchip').forEach(chip => {
+                chip.addEventListener('click', () => {
+                    patternChips.querySelectorAll('.pfp-pchip').forEach(c => c.classList.remove('selected'));
+                    chip.classList.add('selected');
+                    selectedPattern = chip.dataset.pattern;
+                    refreshSaveState();
+                });
+            });
+
+            noteEl.addEventListener('input', refreshSaveState);
+
+            async function postCorrection(payload) {
+                const resp = await fetch('/api/admin/correction/stock', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                let body = null;
+                try { body = await resp.json(); } catch (e) { /* ignore */ }
+                return { ok: resp.ok, status: resp.status, body };
+            }
+
+            pop.querySelectorAll('.pfp-buttons button').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    if (submitting || !activeStone) return;
+                    const decision = btn.dataset.decision;
+                    if (decision === 'cancel') { closePopover(); return; }
+
+
+
+                    let payload = {
+                        company_stone_id: activeStone.id,
+                        field_name: 'pattern_family',
+                        session_id: SESSION_ID,
+                        surface: 'admin_findstone',
+                    };
+
+                    if (!selectedPattern) return;
+                    payload.action_type = 'CORRECTION';
+                    payload.override_value = selectedPattern;
+                    const note = noteEl.value.trim();
+                    if (note) payload.reviewer_note = note;
+
+                    submitting = true;
+                    pop.querySelectorAll('.pfp-buttons button').forEach(b => b.disabled = true);
+                    setStatus('Saving…');
+                    try {
+                        const { ok, status, body } = await postCorrection(payload);
+                        if (ok) {
+                            setStatus('Saved', 'success');
+                            lastCorrectionStoneId = activeStone.id;
+                            if (body && typeof body.session_correction_count === 'number' && counterEl) {
+                                counterEl.textContent = String(body.session_correction_count);
+                            }
+                            if (activeBtn) {
+                                const card = activeBtn.closest('.stone-card');
+                                if (card) {
+                                    card.dataset.currentPattern = selectedPattern;
+                                    const chipEl = card.querySelector('[data-pattern-display]');
+                                    if (chipEl) chipEl.textContent = selectedPattern.replace('_', ' ');
+                                }
+                                activeStone.pattern = selectedPattern;
+                            }
+                            setTimeout(() => { if (pop.classList.contains('visible')) closePopover(); }, 500);
+                        } else {
+                            const detail = body && body.detail
+                                ? (typeof body.detail === 'string' ? body.detail : JSON.stringify(body.detail))
+                                : ('HTTP ' + status);
+                            setStatus(detail, 'error');
+                            pop.querySelectorAll('.pfp-buttons button').forEach(b => b.disabled = false);
+                            refreshSaveState();
+                        }
+                    } catch (err) {
+                        setStatus('Network error: ' + err.message, 'error');
+                        pop.querySelectorAll('.pfp-buttons button').forEach(b => b.disabled = false);
+                        refreshSaveState();
+                    } finally {
+                        submitting = false;
+                    }
+                });
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!pop.classList.contains('visible')) return;
+                if (pop.contains(e.target)) return;
+                if (activeBtn && activeBtn.contains(e.target)) return;
+                closePopover();
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && pop.classList.contains('visible')) closePopover();
+            });
+        })();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Similar — Loading...</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .se-topbar {
+            background: #2c3e50;
+            color: #fff;
+            padding: 0.75rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .se-topbar a {
+            color: #ecf0f1;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .se-topbar a:hover {
+            text-decoration: underline;
+        }
+
+        .se-hero {
+            background: #fff;
+            border-bottom: 2px solid #3498db;
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .se-hero-img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 6px;
+            background: #eee;
+            flex-shrink: 0;
+        }
+
+        .se-hero-info {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .se-hero-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #2c3e50;
+        }
+
+        .se-hero-meta {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            margin-top: 0.2rem;
+        }
+
+        .se-hero-chips {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            margin-top: 0.4rem;
+        }
+
+        .se-hero-chip {
+            font-size: 0.7rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            background: rgba(52, 152, 219, 0.12);
+            color: #3498db;
+            border: 1px solid rgba(52, 152, 219, 0.25);
+        }
+
+        .se-loading {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #7f8c8d;
+            font-size: 1rem;
+        }
+
+        .se-rows {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            padding: 1.5rem 2rem;
+        }
+
+        .se-row {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .se-row-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: #fafafa;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .se-row-header h3 {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .se-row-header .se-row-icon {
+            font-size: 1rem;
+        }
+
+        .se-row-count {
+            background: #ecf0f1;
+            color: #7f8c8d;
+            font-size: 0.72rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .se-row-scroll {
+            display: flex;
+            flex-direction: row;
+            overflow-x: auto;
+            gap: 14px;
+            padding: 14px 16px;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .se-row-scroll::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .se-row-scroll::-webkit-scrollbar-track {
+            background: #f0f0f0;
+            border-radius: 3px;
+        }
+
+        .se-row-scroll::-webkit-scrollbar-thumb {
+            background: #c0c0c0;
+            border-radius: 3px;
+        }
+
+        .se-row-scroll::-webkit-scrollbar-thumb:hover {
+            background: #a0a0a0;
+        }
+
+        /* Task #375 — unified results grid, shown only when a refinement is active. */
+        .se-unified-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 14px;
+            padding: 14px 16px;
+        }
+
+        .se-row-empty {
+            padding: 1.5rem 1rem;
+            color: #95a5a6;
+            font-style: italic;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        .se-card {
+            flex-shrink: 0;
+            width: 200px;
+            display: flex;
+            flex-direction: column;
+            border-radius: 6px;
+            border: 1px solid #eee;
+            overflow: hidden;
+            transition: box-shadow 0.15s, border-color 0.15s;
+            background: #fff;
+        }
+
+        .se-card:hover {
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+            border-color: #d0d0d0;
+        }
+
+        .se-card-img {
+            width: 200px;
+            height: 180px;
+            object-fit: cover;
+            background: #eee;
+            flex-shrink: 0;
+            display: block;
+        }
+
+        .se-card-body {
+            padding: 0.5rem 0.6rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .se-card-name {
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #2c3e50;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .se-card-name a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .se-card-name a:hover {
+            text-decoration: underline;
+            color: #3498db;
+        }
+
+        .se-card-meta {
+            font-size: 0.7rem;
+            color: #95a5a6;
+            margin-top: 0.15rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .se-card-chips {
+            display: flex;
+            gap: 0.2rem;
+            flex-wrap: wrap;
+            margin-top: 0.3rem;
+        }
+
+        .se-chip {
+            font-size: 0.6rem;
+            padding: 0.1rem 0.35rem;
+            border-radius: 3px;
+            font-weight: 600;
+            background: rgba(52, 152, 219, 0.12);
+            color: #3498db;
+            border: 1px solid rgba(52, 152, 219, 0.25);
+        }
+
+        .se-chip-admin {
+            background: rgba(142, 68, 173, 0.12);
+            color: #8e44ad;
+            border-color: rgba(142, 68, 173, 0.25);
+        }
+
+        .se-sim-bar {
+            height: 3px;
+            background: #ecf0f1;
+            border-radius: 2px;
+            margin-top: 0.3rem;
+            width: 100%;
+        }
+
+        .se-sim-fill {
+            height: 100%;
+            background: #27ae60;
+            border-radius: 2px;
+        }
+
+        .se-card-actions {
+            display: flex;
+            gap: 0.25rem;
+            margin-top: 0.35rem;
+            flex-wrap: wrap;
+        }
+
+        .se-card-btn {
+            font-size: 0.62rem;
+            padding: 0.18rem 0.4rem;
+            border-radius: 3px;
+            border: 1px solid #bdc3c7;
+            background: #fff;
+            color: #2c3e50;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .se-card-btn:hover {
+            background: #ecf0f1;
+        }
+
+        .se-card-btn.se-btn-danger {
+            border-color: #e74c3c;
+            color: #e74c3c;
+        }
+
+        .se-card-btn.se-btn-danger:hover {
+            background: rgba(231, 76, 60, 0.1);
+        }
+
+        .se-card-btn.se-btn-success {
+            border-color: #27ae60;
+            color: #27ae60;
+        }
+
+        .se-card-btn.se-btn-success:hover {
+            background: rgba(39, 174, 96, 0.1);
+        }
+
+        .se-reason-picker {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+            z-index: 9010;
+            padding: 1.25rem;
+            min-width: 300px;
+        }
+
+        .se-reason-picker.se-visible {
+            display: block;
+        }
+
+        .se-reason-picker h4 {
+            margin: 0 0 0.75rem 0;
+            font-size: 0.9rem;
+            color: #2c3e50;
+        }
+
+        .se-reason-btn {
+            display: block;
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            background: #fff;
+            color: #2c3e50;
+            cursor: pointer;
+            font-size: 0.78rem;
+            text-align: left;
+            margin-bottom: 0.4rem;
+        }
+
+        .se-reason-btn:hover {
+            background: #f8f9fa;
+            border-color: #3498db;
+        }
+
+        .se-reason-cancel {
+            margin-top: 0.5rem;
+            font-size: 0.72rem;
+            color: #95a5a6;
+            cursor: pointer;
+            text-align: center;
+            display: block;
+        }
+
+        .se-compare-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9020;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .se-compare-overlay.se-visible {
+            display: flex;
+        }
+
+        .se-compare-panel {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            width: min(900px, 90vw);
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+
+        .se-compare-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .se-compare-header h3 {
+            margin: 0;
+            font-size: 1rem;
+            color: #2c3e50;
+        }
+
+        .se-close-btn {
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            cursor: pointer;
+            color: #7f8c8d;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+        }
+
+        .se-close-btn:hover {
+            background: #eee;
+            color: #2c3e50;
+        }
+
+        .se-compare-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .se-compare-side {
+            text-align: center;
+        }
+
+        .se-compare-side img {
+            width: 100%;
+            max-height: 250px;
+            object-fit: cover;
+            border-radius: 8px;
+            background: #eee;
+            margin-bottom: 0.75rem;
+        }
+
+        .se-compare-side h4 {
+            font-size: 0.9rem;
+            color: #2c3e50;
+            margin-bottom: 0.3rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .se-compare-side .se-compare-meta {
+            font-size: 0.72rem;
+            color: #7f8c8d;
+            margin-bottom: 0.5rem;
+        }
+
+        .se-compare-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 0.78rem;
+        }
+
+        .se-compare-table th {
+            background: #f5f7f9;
+            color: #7f8c8d;
+            font-weight: 600;
+            padding: 0.4rem 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .se-compare-table td {
+            padding: 0.4rem 0.75rem;
+            border-bottom: 1px solid #f0f0f0;
+            color: #2c3e50;
+        }
+
+        .se-compare-match {
+            color: #27ae60;
+            font-weight: 600;
+        }
+
+        .se-compare-diff {
+            color: #e67e22;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="se-topbar">
+        <a href="javascript:history.back()">&#8592; Back</a>
+        <span style="font-weight:600;">Similar Stone Explorer</span>
+        {% if admin_mode %}
+        <a href="/admin/logout"
+            style="margin-left: auto; background-color: #e74c3c; color: white; padding: 0.3rem 0.8rem; border-radius: 4px; font-weight: bold; font-size: 0.85rem; transition: background-color 0.2s; text-decoration: none !important;"
+            onmouseover="this.style.backgroundColor='#c0392b'; this.style.textDecoration='none'"
+            onmouseout="this.style.backgroundColor='#e74c3c'; this.style.textDecoration='none'">Logout</a>
+        {% else %}
+        <a href="/admin/login?next={{ (request.url.path + ('?' + request.url.query if request.url.query else '')) | urlencode }}"
+            style="margin-left: auto; background-color: #2ecc71; color: white; padding: 0.3rem 0.8rem; border-radius: 4px; font-weight: bold; font-size: 0.85rem; transition: background-color 0.2s; text-decoration: none !important;"
+            onmouseover="this.style.backgroundColor='#27ae60'; this.style.textDecoration='none'"
+            onmouseout="this.style.backgroundColor='#2ecc71'; this.style.textDecoration='none'">Admin Login</a>
+        {% endif %}
+    </div>
+
+    <div id="seHero" class="se-hero" style="display:none;"></div>
+
+    <div id="seLoading" class="se-loading">Loading similar stones...</div>
+
+    <div id="seRows" class="se-rows" style="display:none;">
+        <div class="se-row" id="seRowC">
+            <div class="se-row-header">
+                <h3><span class="se-row-icon">&#128065;</span> AI Visual Similarity</h3>
+                <span class="se-row-count" id="seSectionCCount">0</span>
+            </div>
+            <div class="se-row-scroll" id="seSectionCBody"></div>
+        </div>
+    </div>
+
+    <div class="se-reason-picker" id="seReasonPicker">
+        <h4>Mark Not Related — Reason</h4>
+        <button class="se-reason-btn" onclick="seSubmitNotRelated('Wrong Pattern')">Wrong Pattern</button>
+        <button class="se-reason-btn" onclick="seSubmitNotRelated('Wrong Color')">Wrong Color</button>
+        <button class="se-reason-btn" onclick="seSubmitNotRelated('Data Error')">Data Error</button>
+        <button class="se-reason-btn" onclick="seSubmitNotRelated('Wrong Source Relationship')">Wrong Source
+            Relationship</button>
+        <button class="se-reason-btn" onclick="seSubmitNotRelated('Duplicate')">Duplicate</button>
+        <button class="se-reason-btn" onclick="seSubmitNotRelated('Bad Link')">Bad Link</button>
+        <span class="se-reason-cancel" onclick="seCancelNotRelated()">Cancel</span>
+    </div>
+
+    <div class="se-compare-overlay" id="seCompareOverlay">
+        <div class="se-compare-panel" id="seComparePanel">
+            <div class="se-compare-header">
+                <h3>Stone Comparison</h3>
+                <button class="se-close-btn" onclick="seCloseCompare()">&times;</button>
+            </div>
+            <div id="seCompareBody"></div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const STONE_IMG_PLACEHOLDER = 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201%201%22%3E%3Crect%20fill%3D%22%23e0e0e0%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3C%2Fsvg%3E';
+            const anchorId = '{{ anchor_id }}';
+            const adminMode = {{ admin_mode | tojson
+        }};
+        const searchVersion = '{{ search_version }}';
+        let seCurrentData = {{ { "anchor": anchor, "sections": sections, "meta": meta } | tojson }};
+        let seNotRelatedTarget = null;
+        function esc(str) {
+            if (!str) return '';
+            const d = document.createElement('div');
+            d.textContent = str;
+            return d.innerHTML;
+        }
+
+        function isAdmin() { return adminMode; }
+        function seMode() { return isAdmin() ? 'admin' : 'buyer'; }
+
+        function seLogEvent(eventType, extra) {
+            const body = Object.assign({
+                event_type: eventType,
+                anchor_id: anchorId,
+                role: seMode(),
+                search_version: searchVersion,
+            }, extra || {});
+            fetch('/api/similar-explorer/event', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            }).catch(() => { });
+        }
+
+        async function loadPage() {
+            try {
+                let url = `/api/similar-explorer?anchor_id=${encodeURIComponent(anchorId)}&mode=${seMode()}&search_version=${searchVersion}`;
+                const resp = await fetch(url);
+                if (!resp.ok) throw new Error('API error ' + resp.status);
+                const next = await resp.json();
+                seCurrentData = next;
+                renderSections();
+            } catch (err) {
+                document.getElementById('seLoading').textContent = 'Failed to load: ' + err.message;
+            }
+        }
+
+        function renderSections() {
+            const d = seCurrentData;
+            if (!d) return;
+            const sections = d.sections || {};
+            const c = sections.section_c || [];
+
+            renderSection('seSectionC', c, 'No visual matches found.');
+
+            document.getElementById('seLoading').style.display = 'none';
+            document.getElementById('seRows').style.display = '';
+        }
+
+        function render() {
+            const d = seCurrentData;
+            if (!d) return;
+
+            document.title = 'Similar \u2014 ' + (d.anchor.display_name || anchorId);
+
+            renderHero(d.anchor);
+            renderSections();
+        }
+
+        function renderSection(idPrefix, items, emptyMsg) {
+            document.getElementById(idPrefix + 'Count').textContent = items.length;
+            const body = document.getElementById(idPrefix + 'Body');
+            if (items.length === 0) {
+                body.innerHTML = `<div class="se-row-empty">${esc(emptyMsg)}</div>`;
+            } else {
+                body.innerHTML = items.map(c => renderCard(c)).join('');
+            }
+        }
+
+        function renderHero(a) {
+            if (!a) return;
+            const tax = a.taxonomy || {};
+            const chips = [];
+            if (tax.base_color) chips.push(tax.base_color);
+            if (tax.pattern_family) chips.push(tax.pattern_family);
+            if (tax.network_thickness) chips.push(tax.network_thickness);
+            if (tax.has_bold_accent_vein) chips.push('Bold Vein: ' + tax.has_bold_accent_vein);
+
+            const heroEl = document.getElementById('seHero');
+            heroEl.style.display = '';
+            heroEl.innerHTML = `
+            <img class="se-hero-img" src="${esc(a.image_url) || STONE_IMG_PLACEHOLDER}" alt="${esc(a.display_name)}" onerror="this.onerror=null;this.src='${STONE_IMG_PLACEHOLDER}'">
+            <div class="se-hero-info">
+                <div class="se-hero-name">${esc(a.display_name)}</div>
+                <div class="se-hero-meta">
+                    ${a.source ? 'Source: ' + esc(a.source) : ''}
+                    ${a.batch_id ? ' &middot; Batch: ' + esc(a.batch_id) : ''}
+                </div>
+                <div class="se-hero-chips">
+                    ${chips.map(c => `<span class="se-hero-chip">${esc(c)}</span>`).join('')}
+                </div>
+            </div>
+        `;
+        }
+
+        function renderCard(c) {
+            const admin = isAdmin();
+            const chips = admin ? (c.admin_reason_chips || []) : (c.buyer_reason_chips || []);
+            const chipClass = admin ? 'se-chip se-chip-admin' : 'se-chip';
+
+            let chipsHtml = chips.map(ch => `<span class="${chipClass}">${esc(ch)}</span>`).join('');
+
+            const safeId = esc(c.id);
+            let actionsHtml = `
+            <button class="se-card-btn" onclick="event.stopPropagation(); seCompare('${safeId}')">Compare</button>
+            <a class="se-card-btn" href="/similar/${encodeURIComponent(c.id)}" style="text-decoration:none;">Drill</a>`;
+
+            if (admin) {
+                actionsHtml += `
+                <button class="se-card-btn se-btn-success" onclick="event.stopPropagation(); seMarkTrueLinked('${safeId}')">Linked</button>
+                <button class="se-card-btn se-btn-danger" onclick="event.stopPropagation(); seOpenNotRelated('${safeId}')">Not Related</button>`;
+            }
+
+            let simBar = '';
+            if (c.similarity != null) {
+                const pct = (c.similarity * 100).toFixed(0);
+                simBar = `<div class="se-sim-bar"><div class="se-sim-fill" style="width:${pct}%"></div></div>
+                      <div style="font-size:0.6rem;color:#7f8c8d;margin-top:0.1rem;">${pct}% similar</div>`;
+            } else if (c.debug && c.debug.name_score != null) {
+                const score = c.debug.name_score;
+                simBar = `<div class="se-sim-bar"><div class="se-sim-fill" style="width:${score}%"></div></div>
+                      <div style="font-size:0.6rem;color:#7f8c8d;margin-top:0.1rem;">${score}% name</div>`;
+            }
+
+            return `
+        <div class="se-card">
+            <img class="se-card-img" src="${esc(c.image_url) || STONE_IMG_PLACEHOLDER}" alt="${esc(c.display_name)}" onerror="this.onerror=null;this.src='${STONE_IMG_PLACEHOLDER}'">
+            <div class="se-card-body">
+                <div class="se-card-name"><a href="/similar/${encodeURIComponent(c.id)}">${esc(c.display_name)}</a></div>
+                <div class="se-card-meta">${esc(c.source) || ''}${c.batch_id ? ' &middot; ' + esc(c.batch_id) : ''}</div>
+                <div class="se-card-chips">${chipsHtml}</div>
+                ${simBar}
+                <div class="se-card-actions">${actionsHtml}</div>
+            </div>
+        </div>`;
+        }
+
+        window.seCompare = function (candidateId) {
+            if (!seCurrentData) return;
+            seLogEvent('similar_compare_started', { candidate_id: candidateId });
+
+            const anchor = seCurrentData.anchor;
+            const sections = seCurrentData.sections || {};
+            const allCandidates = [
+                ...(sections.section_a || []),
+                ...(sections.section_b || []),
+                ...(sections.section_c || []),
+            ];
+            const candidate = allCandidates.find(c => c.id === candidateId);
+            if (!candidate) return;
+
+            const aTax = anchor.taxonomy || {};
+            const cTax = candidate.taxonomy || {};
+
+            const rows = [
+                ['Source', anchor.source, candidate.source],
+                ['Batch', anchor.batch_id, candidate.batch_id],
+                ['Base Color', aTax.base_color, cTax.base_color],
+                ['Pattern Family', aTax.pattern_family, cTax.pattern_family],
+                ['Network Thickness', aTax.network_thickness, cTax.network_thickness],
+                ['Bold Accent Vein', aTax.has_bold_accent_vein, cTax.has_bold_accent_vein],
+                ['Status', anchor.status, candidate.status],
+            ];
+
+            let tableHtml = `<table class="se-compare-table">
+            <thead><tr><th>Field</th><th>Anchor</th><th>Candidate</th></tr></thead><tbody>`;
+            rows.forEach(([field, aVal, cVal]) => {
+                const aStr = aVal || '\u2014';
+                const cStr = cVal || '\u2014';
+                const match = aStr === cStr && aStr !== '\u2014';
+                const cls = match ? 'se-compare-match' : (aStr !== '\u2014' && cStr !== '\u2014' && aStr !== cStr ? 'se-compare-diff' : '');
+                tableHtml += `<tr><td>${esc(field)}</td><td class="${cls}">${esc(aStr)}</td><td class="${cls}">${esc(cStr)}</td></tr>`;
+            });
+            tableHtml += `</tbody></table>`;
+
+            const html = `
+            <div class="se-compare-grid">
+                <div class="se-compare-side">
+                    <img src="${esc(anchor.image_url) || STONE_IMG_PLACEHOLDER}" alt="${esc(anchor.display_name)}" onerror="this.onerror=null;this.src='${STONE_IMG_PLACEHOLDER}'">
+                    <h4>${esc(anchor.display_name)}</h4>
+                    <div class="se-compare-meta">${esc(anchor.source) || ''} &middot; ${esc(anchor.batch_id) || ''}</div>
+                </div>
+                <div class="se-compare-side">
+                    <img src="${esc(candidate.image_url) || STONE_IMG_PLACEHOLDER}" alt="${esc(candidate.display_name)}" onerror="this.onerror=null;this.src='${STONE_IMG_PLACEHOLDER}'">
+                    <h4>${esc(candidate.display_name)}</h4>
+                    <div class="se-compare-meta">${esc(candidate.source) || ''} &middot; ${esc(candidate.batch_id) || ''}</div>
+                </div>
+            </div>
+            ${tableHtml}
+        `;
+            document.getElementById('seCompareBody').innerHTML = html;
+            document.getElementById('seCompareOverlay').classList.add('se-visible');
+        };
+
+        window.seCloseCompare = function () {
+            document.getElementById('seCompareOverlay').classList.remove('se-visible');
+        };
+
+        window.seMarkTrueLinked = async function (candidateId) {
+            try {
+                await fetch('/api/similar-explorer/mark-true-linked', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        anchor_id: anchorId,
+                        candidate_id: candidateId,
+                        role: seMode(),
+                        search_version: searchVersion,
+                    }),
+                });
+            } catch (e) { console.error('seMarkTrueLinked failed:', e); }
+            await loadPage();
+        };
+
+        window.seOpenNotRelated = function (candidateId) {
+            seNotRelatedTarget = candidateId;
+            document.getElementById('seReasonPicker').classList.add('se-visible');
+        };
+
+        window.seCancelNotRelated = function () {
+            seNotRelatedTarget = null;
+            document.getElementById('seReasonPicker').classList.remove('se-visible');
+        };
+
+        window.seSubmitNotRelated = async function (reason) {
+            if (!seNotRelatedTarget) return;
+            const candidateId = seNotRelatedTarget;
+            seCancelNotRelated();
+            try {
+                await fetch('/api/similar-explorer/mark-not-related', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        anchor_id: anchorId,
+                        candidate_id: candidateId,
+                        reason: reason,
+                        role: seMode(),
+                        search_version: searchVersion,
+                    }),
+                });
+            } catch (e) { console.error('seSubmitNotRelated failed:', e); }
+            await loadPage();
+        };
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                if (document.getElementById('seCompareOverlay').classList.contains('se-visible')) {
+                    seCloseCompare();
+                } else if (document.getElementById('seReasonPicker').classList.contains('se-visible')) {
+                    seCancelNotRelated();
+                }
+            }
+        });
+
+        render();
+        seLogEvent('similar_page_opened');
+}) ();
+    </script>
+</body>
+
+</html>

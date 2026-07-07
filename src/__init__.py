@@ -1,0 +1,1 @@
+# StoneStocks manifest loader package

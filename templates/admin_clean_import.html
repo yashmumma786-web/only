@@ -1,0 +1,1915 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clean Import v2 - Admin</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1,
+        h2,
+        h3 {
+            margin-bottom: 15px;
+        }
+
+        .nav {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .nav a {
+            color: #64b5f6;
+            text-decoration: none;
+            padding: 8px 16px;
+            background: #2a2a4e;
+            border-radius: 6px;
+        }
+
+        .nav a:hover {
+            background: #3a3a5e;
+        }
+
+        .db-badge {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85em;
+        }
+
+        .db-default {
+            background: #555;
+            color: #fff;
+        }
+
+        .db-clean {
+            background: #2e7d32;
+            color: #fff;
+        }
+
+        .section {
+            background: #2a2a4e;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .warning-box {
+            background: #4a3a1a;
+            border: 1px solid #c4a000;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .warning-box h3 {
+            color: #ffc107;
+        }
+
+        .safety-box {
+            background: #1a3a1a;
+            border: 1px solid #2e7d32;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .safety-box h3 {
+            color: #4caf50;
+        }
+
+        .upload-area {
+            border: 2px dashed #555;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .upload-area.dragover {
+            border-color: #64b5f6;
+            background: rgba(100, 181, 246, 0.1);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .btn {
+            background: #4a90d9;
+            color: #fff !important;
+            text-decoration: none !important;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            display: inline-block;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .btn:hover {
+            background: #5a9fe9;
+        }
+
+        .btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+
+        .btn-success {
+            background: #2e7d32;
+        }
+
+        .btn-success:hover {
+            background: #3e8d42;
+        }
+
+        .btn-danger {
+            background: #c62828;
+        }
+
+        .btn-danger:hover {
+            background: #d63838;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #444;
+        }
+
+        th {
+            background: #1a1a2e;
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .mapping-table {
+            margin: 20px 0;
+        }
+
+        .mapping-table td:first-child {
+            font-weight: bold;
+            color: #4a90d9;
+        }
+
+        .mapping-table td:last-child {
+            color: #aaa;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .summary-item {
+            background: #1a1a2e;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .summary-item .value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #4a90d9;
+        }
+
+        .summary-item .label {
+            font-size: 0.85em;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .summary-item.success .value {
+            color: #4caf50;
+        }
+
+        .summary-item.warning .value {
+            color: #ffc107;
+        }
+
+        .summary-item.danger .value {
+            color: #f44336;
+        }
+
+        .validation-section {
+            margin-top: 20px;
+        }
+
+        .vendor-list {
+            max-height: 400px;
+            overflow: auto;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #fff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        pre {
+            background: #1a1a2e;
+            padding: 10px;
+            border-radius: 6px;
+            overflow: auto;
+            font-size: 0.85em;
+        }
+
+        code {
+            color: #4a90d9;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+            vertical-align: middle;
+        }
+
+        .badge-validated {
+            background: #1b5e20;
+            color: #a5d6a7;
+        }
+
+        .badge-blocked {
+            background: #b71c1c;
+            color: #ef9a9a;
+        }
+
+        .badge-draft {
+            background: #424242;
+            color: #bdbdbd;
+        }
+
+        .badge-archived {
+            background: #263238;
+            color: #90a4ae;
+        }
+
+        .badge-active {
+            background: #0d47a1;
+            color: #90caf9;
+        }
+
+        .badge-warn {
+            background: #e65100;
+            color: #ffcc80;
+        }
+
+        .badge-pass {
+            background: #1b5e20;
+            color: #a5d6a7;
+        }
+
+        .badge-no_baseline {
+            background: #424242;
+            color: #bdbdbd;
+        }
+
+        .datasets-table td,
+        .datasets-table th {
+            font-size: 0.88em;
+            vertical-align: middle;
+        }
+
+        .blocked-reasons {
+            color: #ef9a9a;
+            font-size: 0.82em;
+            margin-top: 4px;
+        }
+
+        .continuity-warnings {
+            color: #ffcc80;
+            font-size: 0.82em;
+            margin-top: 4px;
+        }
+
+        .btn-sm {
+            padding: 4px 10px;
+            font-size: 0.8em;
+        }
+
+        .btn-danger {
+            background: #c62828;
+        }
+
+        .btn-danger:hover {
+            background: #b71c1c;
+        }
+
+        .action-cell {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .runs-toggle {
+            background: transparent;
+            border: 1px solid #4a90d9;
+            color: #90caf9;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.78em;
+            cursor: pointer;
+            font-family: monospace;
+        }
+
+        .runs-toggle:hover {
+            background: rgba(74, 144, 217, 0.15);
+        }
+
+        .runs-expand-row td {
+            background: #14142a;
+            padding: 16px 12px;
+            border-bottom: 2px solid #2a2a4e;
+        }
+
+        /* Dark-theme overrides for the shared run-history partial. The
+           partial below is the single source of truth for markup; this
+           block only re-themes a few neutral surfaces so the block is
+           legible on this dark page. */
+        .runs-expand-row .rh-track {
+            background: #1a1a2e;
+            border: 1px solid #2a2a4e;
+        }
+
+        .runs-expand-row .rh-track h4 {
+            color: #90caf9;
+        }
+
+        .runs-expand-row .rh-table th {
+            background: #0d0d1a;
+            color: #888;
+            border-bottom-color: #2a2a4e;
+        }
+
+        .runs-expand-row .rh-table td {
+            border-bottom-color: #222;
+        }
+
+        .runs-expand-row .rh-table tr.preview-separator td {
+            background: #0d0d1a;
+            color: #ffc107;
+            border-bottom-color: #2a2a4e;
+        }
+
+        .runs-expand-row .rh-table .stale-hint,
+        .runs-expand-row .rh-table .empty-cell {
+            color: #888;
+            opacity: 1;
+        }
+
+        .runs-expand-row .rh-table .run-id-cell {
+            color: #aaa;
+        }
+
+        .runs-expand-row .rh-table .target-cell {
+            color: #90caf9;
+        }
+
+        .runs-expand-row .rh-table .ts-label {
+            color: #666;
+            opacity: 1;
+        }
+
+        .runs-expand-row .rh-table .ts-val {
+            color: #ccc;
+        }
+
+        .runs-expand-row .rh-table .reversible-na {
+            color: #888;
+            border-bottom-color: #555;
+        }
+
+        .runs-expand-row .rh-table .report-link {
+            color: #64b5f6;
+        }
+
+        .runs-expand-row .rh-table .no-report {
+            color: #555;
+            opacity: 1;
+        }
+
+        .runs-expand-row .rh-badge-previewed {
+            background: #4a3a1a;
+            color: #ffc107;
+        }
+
+        .runs-expand-row .rh-badge-applied {
+            background: #1b5e20;
+            color: #a5d6a7;
+        }
+
+        .runs-expand-row .rh-badge-failed {
+            background: #b71c1c;
+            color: #ef9a9a;
+        }
+
+        .runs-expand-row .rh-badge-rolled_back {
+            background: #424242;
+            color: #bdbdbd;
+        }
+
+        .enrichment-plan {
+            border: 1px solid #3a4a7a;
+            border-radius: 8px;
+            padding: 18px;
+            margin-top: 20px;
+            background: #1e2a4a;
+        }
+
+        .enrichment-plan h3 {
+            color: #90caf9;
+            margin-bottom: 14px;
+        }
+
+        .ep-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .ep-tile {
+            background: #1a1a2e;
+            border-radius: 6px;
+            padding: 12px 8px;
+            text-align: center;
+        }
+
+        .ep-tile .ep-val {
+            font-size: 1.6em;
+            font-weight: bold;
+        }
+
+        .ep-tile .ep-lbl {
+            font-size: 0.75em;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        .ep-new .ep-val {
+            color: #42a5f5;
+        }
+
+        .ep-changed_image .ep-val {
+            color: #ffa726;
+        }
+
+        .ep-changed_metadata .ep-val {
+            color: #ffee58;
+        }
+
+        .ep-unchanged .ep-val {
+            color: #66bb6a;
+        }
+
+        .ep-invalid .ep-val {
+            color: #ef5350;
+        }
+
+        .ep-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .ep-actions button {
+            padding: 11px 22px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.95em;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-incremental {
+            background: #1565c0;
+            color: #fff;
+        }
+
+        .btn-incremental:hover {
+            background: #1976d2;
+        }
+
+        .btn-full {
+            background: #4a4a4a;
+            color: #fff;
+        }
+
+        .btn-full:hover {
+            background: #5a5a5a;
+        }
+
+        .ep-actions button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .ep-log {
+            margin-top: 14px;
+            background: #0d0d1a;
+            border-radius: 6px;
+            padding: 12px;
+            font-family: monospace;
+            font-size: 0.82em;
+            color: #aaa;
+            max-height: 260px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            display: none;
+        }
+
+        .ep-progress {
+            margin-top: 18px;
+            display: none;
+        }
+
+        .ep-progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 6px;
+        }
+
+        .ep-progress-title {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #90caf9;
+        }
+
+        .ep-progress-pct {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #42a5f5;
+        }
+
+        .ep-bar-wrap {
+            background: #0d0d1a;
+            border-radius: 8px;
+            height: 18px;
+            overflow: hidden;
+        }
+
+        .ep-bar-fill {
+            height: 100%;
+            border-radius: 8px;
+            background: linear-gradient(90deg, #1565c0, #42a5f5);
+            transition: width 0.4s ease;
+            width: 0%;
+        }
+
+        .ep-bar-fill.done {
+            background: linear-gradient(90deg, #1b5e20, #4caf50);
+        }
+
+        .ep-bar-fill.error {
+            background: linear-gradient(90deg, #b71c1c, #ef5350);
+        }
+
+        .ep-progress-meta {
+            margin-top: 8px;
+            font-size: 0.8em;
+            color: #888;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .ep-progress-meta span {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .ep-progress-meta .val {
+            color: #ccc;
+            font-weight: 600;
+        }
+
+        .ep-stage-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .ep-stage-tile {
+            background: #0d0d1a;
+            border-radius: 6px;
+            padding: 10px 12px;
+            border: 1px solid #2a2a4e;
+        }
+
+        .ep-stage-tile.active {
+            border-color: #42a5f5;
+            background: #0d1a2e;
+        }
+
+        .ep-stage-tile.complete {
+            border-color: #2e7d32;
+        }
+
+        .ep-stage-tile .st-label {
+            font-size: 0.75em;
+            color: #888;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .ep-stage-tile .st-val {
+            font-size: 1em;
+            font-weight: 600;
+            color: #ccc;
+        }
+
+        .ep-stage-tile.active .st-val {
+            color: #42a5f5;
+        }
+
+        .ep-stage-tile.complete .st-val {
+            color: #4caf50;
+        }
+
+        .ep-stone-id {
+            margin-top: 10px;
+            font-size: 0.78em;
+            color: #666;
+            font-family: monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .ep-stone-id .sid-label {
+            color: #555;
+        }
+
+        .ep-stone-id .sid-val {
+            color: #90caf9;
+        }
+
+        .ep-final-stats {
+            margin-top: 14px;
+            display: none;
+        }
+
+        .ep-final-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .ep-final-tile {
+            background: #0d0d1a;
+            border-radius: 6px;
+            padding: 10px 8px;
+            text-align: center;
+        }
+
+        .ep-final-tile .fv {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #42a5f5;
+        }
+
+        .ep-final-tile .fl {
+            font-size: 0.72em;
+            color: #777;
+            margin-top: 3px;
+        }
+
+        .ep-final-tile.success .fv {
+            color: #4caf50;
+        }
+
+        .ep-final-tile.warning .fv {
+            color: #ffa726;
+        }
+
+        .ep-final-tile.danger .fv {
+            color: #ef5350;
+        }
+
+        .ep-elapsed {
+            font-size: 0.78em;
+            color: #555;
+            margin-top: 6px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="nav">
+            <a href="/">Home</a>
+            <a href="/admin/clean-import" style="background: #4a90d9;">Dataset Import</a>
+            <span class="db-badge {{ 'db-clean' if db_info.is_clean_db else 'db-default' }}">
+                DB: {{ db_info.db_name }}
+            </span>
+        </div>
+
+        <h1>Dataset Import</h1>
+
+        <div class="section">
+            <h2>Strict Column Mapping (No Guessing)</h2>
+            <p style="color: #888; margin-bottom: 15px;">This importer uses hardcoded column names with NO fallbacks:
+            </p>
+
+            <table class="mapping-table">
+                <tr>
+                    <th>Database Field</th>
+                    <th>CSV Column</th>
+                    <th>Notes</th>
+                </tr>
+                <tr>
+                    <td>batch_id</td>
+                    <td>packing_list_id</td>
+                    <td>Primary stock identifier</td>
+                </tr>
+                <tr>
+                    <td>company_stone_id</td>
+                    <td>company_stone_id</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>vendor</td>
+                    <td><strong>vendor name</strong></td>
+                    <td>STRICT: Only this column, no fallback. Missing = 'unknown'</td>
+                </tr>
+                <tr>
+                    <td>stone_name_raw</td>
+                    <td>name</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>image_url</td>
+                    <td>url</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>block_no</td>
+                    <td>block_no</td>
+                    <td>If present</td>
+                </tr>
+                <tr>
+                    <td>block_id</td>
+                    <td>block_id</td>
+                    <td>Direct from CSV, NOT constructed as vendor|block_no</td>
+                </tr>
+                <tr>
+                    <td>image_asset_id</td>
+                    <td>object_key</td>
+                    <td></td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="section" id="preAnalyseSection">
+            <h2>Pre-Import Analyser — run this before uploading below</h2>
+            <p style="color:#888;margin-bottom:15px;font-size:0.9em;">
+                Read-only inspection of a candidate CSV against the active dataset + foundation embedding DB.
+                No writes. Use the trim button to produce a block-capped CSV, then feed <em>that</em> file into
+                the importer below.
+            </p>
+            <div class="upload-area" id="preAnalyseArea">
+                <p style="margin-bottom:15px;">Drag &amp; drop a candidate CSV here for analysis</p>
+                <input type="file" id="preAnalyseInput" accept=".csv">
+                <button class="btn" onclick="document.getElementById('preAnalyseInput').click()">Choose File for
+                    Analysis</button>
+                <p id="preAnalyseFileName" style="margin-top:15px;color:#888;"></p>
+            </div>
+
+            <div id="preAnalyseResults" class="hidden">
+                <div id="preAnalyseError" class="hidden"
+                    style="background:#4a1a1a;border:1px solid #f44336;border-radius:8px;padding:15px;margin-bottom:15px;color:#ef9a9a;">
+                </div>
+
+                <h3>Required columns</h3>
+                <div id="preAnalyseColumnCheck"></div>
+
+                <h3 style="margin-top:18px;">Counts</h3>
+                <div id="preAnalyseCounts" class="summary-grid"></div>
+
+                <h3 style="margin-top:18px;">Overlap vs active dataset &amp; foundation DB</h3>
+                <div id="preAnalyseOverlap" class="summary-grid"></div>
+
+                <h3 style="margin-top:18px;">Multi-block warning (&gt; <span id="preAnalyseMbThresh"></span> distinct
+                    blocks per CSID)</h3>
+                <div id="preAnalyseMultiBlock"></div>
+
+                <h3 style="margin-top:18px;">Image-volume flag (CSIDs above cap of <span
+                        id="preAnalyseCapThresh"></span>)</h3>
+                <div id="preAnalyseVolume"></div>
+
+                <div style="margin-top:20px;display:flex;gap:15px;align-items:center;flex-wrap:wrap;">
+                    <button class="btn btn-success" id="preAnalyseTrimBtn" onclick="downloadTrimmedCsv()">
+                        Download trimmed CSV for import
+                    </button>
+                    <span id="preAnalyseTrimStatus" style="color:#888;font-size:0.9em;"></span>
+                </div>
+                <p style="margin-top:10px;color:#ffc107;font-size:0.85em;">
+                    ⚠ Upload the <strong>trimmed file</strong> to the importer below, not this original file.
+                </p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Upload Master CSV</h2>
+            <div class="upload-area" id="uploadArea">
+                <p style="margin-bottom: 15px;">Drag & drop the ORIGINAL master CSV file here</p>
+                <input type="file" id="fileInput" accept=".csv">
+                <button class="btn" onclick="document.getElementById('fileInput').click()">Choose File</button>
+                <p id="fileName" style="margin-top: 15px; color: #888;"></p>
+            </div>
+
+            <div id="previewSection" class="hidden">
+                <h3>CSV Preview (First 5 Rows)</h3>
+                <div id="previewContent" style="overflow: auto; max-height: 300px;"></div>
+
+                <div style="margin-top: 20px; display: flex; gap: 15px;">
+                    <button class="btn btn-success" id="importBtn" onclick="runImport()">
+                        Import to Clean DB
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="resultSection" class="section hidden">
+            <h2>Import Result</h2>
+            <div id="importSummary"></div>
+
+            <div id="activationPanel" class="hidden" style="margin-top:20px;">
+            </div>
+
+            <div id="enrichmentPlan" style="display:none;"></div>
+
+            <div class="validation-section">
+                <h3>Validation Report</h3>
+                <div id="validationReport"></div>
+            </div>
+        </div>
+
+        <div class="section" id="datasetsSection">
+            <h2>Datasets in Clean DB</h2>
+            <p style="color:#888; margin-bottom:15px; font-size:0.9em;">Only datasets with status
+                <strong>validated</strong> and no blocked reasons can be activated.
+            </p>
+            <div id="datasetsTableContainer">
+                <p style="color:#888;">Loading…</p>
+            </div>
+        </div>
+
+        {% if existing_validation and not existing_validation.error %}
+        <div class="section">
+            <h2>Current Clean DB Validation</h2>
+            <div class="summary-grid">
+                <div
+                    class="summary-item {{ 'success' if existing_validation.vendor_pollution.pollution_pct < 1 else 'danger' }}">
+                    <div class="value">{{ existing_validation.vendor_pollution.pollution_pct }}%</div>
+                    <div class="label">Vendor Pollution</div>
+                </div>
+                <div class="summary-item">
+                    <div class="value">{{ existing_validation.vendor_pollution.total_rows }}</div>
+                    <div class="label">Total Rows</div>
+                </div>
+                <div
+                    class="summary-item {{ 'success' if existing_validation.packing_list_validation.single_company_stone_pct > 99 else 'warning' }}">
+                    <div class="value">{{ existing_validation.packing_list_validation.single_company_stone_pct }}%</div>
+                    <div class="label">Single Stone per PL</div>
+                </div>
+                <div
+                    class="summary-item {{ 'success' if existing_validation.packing_list_validation.single_stone_name_pct > 99 else 'warning' }}">
+                    <div class="value">{{ existing_validation.packing_list_validation.single_stone_name_pct }}%</div>
+                    <div class="label">Single Name per PL</div>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 20px;">Top 30 Vendors by Image Count</h3>
+            <div class="vendor-list">
+                <table>
+                    <tr>
+                        <th>#</th>
+                        <th>Vendor</th>
+                        <th>Images</th>
+                    </tr>
+                    {% for v in existing_validation.top_vendors %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ v.vendor }}</td>
+                        <td>{{ v.image_count }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        let selectedFile = null;
+        let csvRows = [];
+
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileName = document.getElementById('fileName');
+        const previewSection = document.getElementById('previewSection');
+        const previewContent = document.getElementById('previewContent');
+        const resultSection = document.getElementById('resultSection');
+
+        // ── Datasets table ──────────────────────────────────────────────────
+
+        async function loadDatasets() {
+            const container = document.getElementById('datasetsTableContainer');
+            try {
+                const resp = await fetch('/admin/clean-import/datasets');
+                const datasets = await resp.json();
+                renderDatasetsTable(datasets, container);
+            } catch (e) {
+                container.innerHTML = `<p style="color:#f44336;">Failed to load datasets: ${e.message}</p>`;
+            }
+        }
+
+        function renderDatasetsTable(datasets, container) {
+            if (!datasets || datasets.length === 0) {
+                container.innerHTML = '<p style="color:#888;">No datasets found in clean DB yet.</p>';
+                return;
+            }
+            let html = '<table class="datasets-table"><thead><tr>' +
+                '<th>Runs</th><th>Dataset ID</th><th>File</th><th>Rows</th><th>Stones</th>' +
+                '<th>Status</th><th>Continuity</th><th>Active</th><th>Action</th>' +
+                '</tr></thead><tbody>';
+            datasets.forEach(ds => {
+                const vs = ds.validation_status || 'draft';
+                const active = ds.is_active;
+                const blocked = ds.activation_blocked;
+                const reasons = ds.blocked_reasons || [];
+                const contStatus = ds.continuity_status || '';
+                const contWarnings = ds.continuity_warnings || [];
+
+                let activateBtnHtml = '';
+                let enrichBtnHtml = '';
+                if (active) {
+                    activateBtnHtml = '<span class="badge badge-active">LIVE</span>';
+                } else if (!blocked && vs === 'validated') {
+                    activateBtnHtml = `<button class="btn btn-sm btn-success" onclick="activateDataset('${ds.dataset_id}')">Activate</button>`;
+                    enrichBtnHtml = `<button class="btn btn-sm btn-incremental" style="margin-left:6px" onclick="openEnrichPanel('${ds.dataset_id}', this)">Enrich</button>`;
+                } else {
+                    activateBtnHtml = `<button class="btn btn-sm" disabled title="${reasons.join('; ')}">Blocked</button>`;
+                    enrichBtnHtml = `<button class="btn btn-sm btn-incremental" style="margin-left:6px" onclick="openEnrichPanel('${ds.dataset_id}', this)">Enrich</button>`;
+                }
+
+                let contBadge = '';
+                if (contStatus) {
+                    const cls = contStatus === 'pass' ? 'badge-pass' : (contStatus === 'block' ? 'badge-blocked' : (contStatus === 'warn' ? 'badge-warn' : 'badge-no_baseline'));
+                    contBadge = `<span class="badge ${cls}">${contStatus}</span>`;
+                }
+
+                const reasonsHtml = reasons.length > 0
+                    ? `<div class="blocked-reasons">⛔ ${reasons.map(r => escH(r)).join('<br>')}</div>`
+                    : '';
+                const warnsHtml = contWarnings.length > 0
+                    ? `<div class="continuity-warnings">⚠ ${contWarnings.map(w => escH(w)).join('<br>')}</div>`
+                    : '';
+
+                const dsIdAttr = encodeURIComponent(ds.dataset_id);
+                let actionBtns = `<div class="action-cell">${activateBtnHtml}${enrichBtnHtml}`;
+                if (!active) {
+                    actionBtns += `<button class="btn btn-sm btn-danger" onclick="deleteDataset('${escH(ds.dataset_id)}')">Delete</button>`;
+                }
+                actionBtns += `<a class="btn btn-sm" href="/admin/clean-import/datasets/${dsIdAttr}/log" target="_blank" style="background:#37474f;">Log</a></div>`;
+                html += `<tr style="${active ? 'background:rgba(13,71,161,0.15)' : ''}" data-dataset-row="${escH(ds.dataset_id)}">
+                    <td><button class="runs-toggle" data-dataset-id="${escH(ds.dataset_id)}" onclick="toggleDatasetRuns('${dsIdAttr}', this)">▸ Runs</button></td>
+                    <td style="font-size:0.78em;font-family:monospace">${ds.dataset_id}</td>
+                    <td>${escH(ds.source_filename)}</td>
+                    <td>${ds.rows_read.toLocaleString()}</td>
+                    <td>${ds.unique_company_stones.toLocaleString()}</td>
+                    <td>
+                        <span class="badge badge-${vs}">${vs.toUpperCase()}</span>
+                        ${reasonsHtml}
+                    </td>
+                    <td>${contBadge}${warnsHtml}</td>
+                    <td>${active ? '<span class="badge badge-active">✓</span>' : ''}</td>
+                    <td>${actionBtns}</td>
+                </tr>
+                <tr class="runs-expand-row hidden" data-runs-for="${escH(ds.dataset_id)}">
+                    <td colspan="9"><div class="runs-tracks-host"><p style="color:#888;font-size:0.85em;">Click "▸ Runs" to load run history.</p></div></td>
+                </tr>`;
+
+            });
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        async function toggleDatasetRuns(encodedDatasetId, btn) {
+            const datasetId = decodeURIComponent(encodedDatasetId);
+            const expandRow = document.querySelector(`tr.runs-expand-row[data-runs-for="${cssEsc(datasetId)}"]`);
+            if (!expandRow) return;
+            const isOpen = !expandRow.classList.contains('hidden');
+            if (isOpen) {
+                expandRow.classList.add('hidden');
+                btn.textContent = '▸ Runs';
+                return;
+            }
+            expandRow.classList.remove('hidden');
+            btn.textContent = '▾ Runs';
+            const host = expandRow.querySelector('.runs-tracks-host');
+            // Decorate the host so it conforms to the partial's mount
+            // contract — this lets the rollback click handler call
+            // RunHistoryBlock.fetchAndMount(host) to refresh in place
+            // immediately after a successful rollback.
+            host.setAttribute('data-run-history-mount', '');
+            host.setAttribute('data-run-history-url',
+                `/admin/clean-import/datasets/${encodedDatasetId}/runs`);
+            host.setAttribute('data-run-history-tracks', 'color,pattern');
+            host.setAttribute('data-allow-rollback', 'true');
+            host.setAttribute('data-dataset-id', datasetId);
+            host.setAttribute('data-dataset-label', datasetId);
+            await window.RunHistoryBlock.fetchAndMount(host);
+        }
+
+        function cssEsc(s) {
+            return String(s || '').replace(/["\\]/g, '\\$&');
+        }
+
+        async function activateDataset(datasetId) {
+            if (!confirm(`Activate dataset "${datasetId}"?\n\nThis will archive the current active dataset and immediately serve this data to all search queries.`)) return;
+            try {
+                const resp = await fetch(`/api/orchestrator/datasets/${datasetId}/activate`, { method: 'POST' });
+                const data = await resp.json();
+                if (resp.ok && data.success) {
+                    alert('Dataset activated successfully! Search cache has been invalidated.');
+                    await loadDatasets();
+                } else {
+                    alert('Activation failed: ' + (data.detail || data.error || JSON.stringify(data)));
+                }
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        }
+
+        async function openEnrichPanel(datasetId, btn) {
+            const origText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Loading…';
+            try {
+                const resp = await fetch(`/api/orchestrator/datasets/${encodeURIComponent(datasetId)}/enrich`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mode: 'incremental', dry_run: true }),
+                });
+                const data = await resp.json();
+                if (!resp.ok) {
+                    alert('Could not load enrichment plan: ' + (data.error || JSON.stringify(data)));
+                    btn.disabled = false;
+                    btn.textContent = origText;
+                    return;
+                }
+                const plan = data.summary || {};
+                plan.dataset_id = datasetId;
+                const resultSection = document.getElementById('resultSection');
+                if (resultSection) resultSection.classList.remove('hidden');
+                renderEnrichmentPlan(plan);
+                document.getElementById('enrichmentPlan').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+            btn.disabled = false;
+            btn.textContent = origText;
+        }
+
+        function escH(s) {
+            return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        async function deleteDataset(datasetId) {
+            if (!confirm(`Delete dataset "${datasetId}"?\n\nThis cannot be undone.`)) return;
+            try {
+                const resp = await fetch(`/admin/clean-import/datasets/delete/${encodeURIComponent(datasetId)}`, { method: 'DELETE' });
+                const data = await resp.json();
+                if (data.success) {
+                    await loadDatasets();
+                } else {
+                    alert('Failed to delete: ' + (data.detail || data.error || 'Unknown error'));
+                }
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        }
+
+        loadDatasets();
+
+        // ── Pre-Import Analyser (Task #427) ────────────────────────────
+        let preAnalyseFile = null;
+        let preAnalyseTrimEnabled = false;
+        const preAnalyseArea = document.getElementById('preAnalyseArea');
+        const preAnalyseInput = document.getElementById('preAnalyseInput');
+        const preAnalyseFileNameEl = document.getElementById('preAnalyseFileName');
+        const preAnalyseResults = document.getElementById('preAnalyseResults');
+        const preAnalyseErrorEl = document.getElementById('preAnalyseError');
+        const preAnalyseTrimBtn = document.getElementById('preAnalyseTrimBtn');
+        const preAnalyseTrimStatus = document.getElementById('preAnalyseTrimStatus');
+
+        preAnalyseArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            preAnalyseArea.classList.add('dragover');
+        });
+        preAnalyseArea.addEventListener('dragleave', () => {
+            preAnalyseArea.classList.remove('dragover');
+        });
+        preAnalyseArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            preAnalyseArea.classList.remove('dragover');
+            if (e.dataTransfer.files.length) handlePreAnalyseFile(e.dataTransfer.files[0]);
+        });
+        preAnalyseInput.addEventListener('change', (e) => {
+            if (e.target.files.length) handlePreAnalyseFile(e.target.files[0]);
+        });
+
+        async function handlePreAnalyseFile(file) {
+            preAnalyseFile = file;
+            preAnalyseFileNameEl.textContent = `Selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+            preAnalyseResults.classList.remove('hidden');
+            preAnalyseErrorEl.classList.add('hidden');
+            preAnalyseTrimStatus.textContent = '';
+            document.getElementById('preAnalyseColumnCheck').innerHTML = '<p style="color:#888;">Analysing…</p>';
+            document.getElementById('preAnalyseCounts').innerHTML = '';
+            document.getElementById('preAnalyseOverlap').innerHTML = '';
+            document.getElementById('preAnalyseMultiBlock').innerHTML = '';
+            document.getElementById('preAnalyseVolume').innerHTML = '';
+            preAnalyseTrimBtn.disabled = true;
+            preAnalyseTrimEnabled = false;
+
+            const fd = new FormData();
+            fd.append('file', file);
+            try {
+                const resp = await fetch('/admin/clean-import/pre-analyse', { method: 'POST', body: fd });
+                const data = await resp.json();
+                if (!resp.ok || !data.success) {
+                    preAnalyseErrorEl.textContent = 'Analysis failed: ' + (data.error || resp.statusText);
+                    preAnalyseErrorEl.classList.remove('hidden');
+                    return;
+                }
+                renderPreAnalyse(data.analysis);
+            } catch (e) {
+                preAnalyseErrorEl.textContent = 'Network error: ' + e.message;
+                preAnalyseErrorEl.classList.remove('hidden');
+            }
+        }
+
+        function renderPreAnalyse(a) {
+            const c = a.constants || {};
+            document.getElementById('preAnalyseMbThresh').textContent = c.MULTI_BLOCK_WARNING;
+            document.getElementById('preAnalyseCapThresh').textContent = c.CSID_IMAGE_CAP;
+
+            // Column check
+            const checks = a.column_check || [];
+            const missing = checks.filter(c => !c.present);
+            let colHtml = '<table><thead><tr><th>Required column</th><th>Status</th></tr></thead><tbody>';
+            checks.forEach(ch => {
+                const icon = ch.present
+                    ? '<span style="color:#4caf50;font-weight:bold;">✓ present</span>'
+                    : '<span style="color:#f44336;font-weight:bold;">✗ MISSING</span>';
+                colHtml += `<tr><td><code>${escH(ch.column)}</code></td><td>${icon}</td></tr>`;
+            });
+            colHtml += '</tbody></table>';
+            document.getElementById('preAnalyseColumnCheck').innerHTML = colHtml;
+
+            // Counts
+            const counts = a.counts || {};
+            document.getElementById('preAnalyseCounts').innerHTML = `
+                <div class="summary-item"><div class="value">${(counts.total_image_rows || 0).toLocaleString()}</div><div class="label">Total Image Rows</div></div>
+                <div class="summary-item"><div class="value">${(counts.unique_csids || 0).toLocaleString()}</div><div class="label">Unique CSIDs</div></div>
+                <div class="summary-item"><div class="value">${(counts.unique_suppliers || 0).toLocaleString()}</div><div class="label">Unique Suppliers</div></div>`;
+
+            // Overlap
+            const ov = a.overlap || {};
+            const ds = ov.active_dataset_id || '(none)';
+            document.getElementById('preAnalyseOverlap').innerHTML = `
+                <div class="summary-item" style="grid-column: span 2;"><div class="value" style="font-size:0.95em;font-family:monospace">${escH(ds)}</div><div class="label">Active Dataset</div></div>
+                <div class="summary-item success"><div class="value">${(ov.genuinely_new || 0).toLocaleString()}</div><div class="label">Genuinely New</div></div>
+                <div class="summary-item"><div class="value">${(ov.carried_over || 0).toLocaleString()}</div><div class="label">Carried Over</div></div>
+                <div class="summary-item warning"><div class="value">${(ov.will_be_removed || 0).toLocaleString()}</div><div class="label">Will Be Removed</div></div>
+                <div class="summary-item success"><div class="value">${(ov.carried_done || 0).toLocaleString()}</div><div class="label">Carried · Already DONE</div></div>
+                <div class="summary-item danger"><div class="value">${(ov.carried_missing_embeddings || 0).toLocaleString()}</div><div class="label">Carried · Missing Embeddings</div></div>`;
+
+            // Multi-block
+            const mb = a.multi_block || [];
+            if (mb.length === 0) {
+                document.getElementById('preAnalyseMultiBlock').innerHTML = '<p style="color:#888;">None — no CSID exceeds the multi-block threshold.</p>';
+            } else {
+                let h = `<p style="color:#ffc107;">${mb.length} CSIDs flagged.</p>`;
+                h += '<table><thead><tr><th>Supplier</th><th>Stone Name</th><th>CSID</th><th>Block Count</th></tr></thead><tbody>';
+                mb.slice(0, 200).forEach(r => {
+                    h += `<tr><td>${escH(r.supplier)}</td><td>${escH(r.stone_name)}</td><td style="font-family:monospace;font-size:0.85em;">${escH(r.csid)}</td><td>${r.block_count}</td></tr>`;
+                });
+                h += '</tbody></table>';
+                if (mb.length > 200) h += `<p style="color:#888;font-size:0.85em;">…showing first 200 of ${mb.length}.</p>`;
+                document.getElementById('preAnalyseMultiBlock').innerHTML = h;
+            }
+
+            // Volume flags
+            const vf = a.volume_flags || [];
+            if (vf.length === 0) {
+                document.getElementById('preAnalyseVolume').innerHTML = '<p style="color:#888;">None — no CSID exceeds the per-stone image cap.</p>';
+            } else {
+                let h = `<p style="color:#ffc107;">${vf.length} CSIDs will be trimmed.</p>`;
+                h += '<table><thead><tr><th>Supplier</th><th>Stone Name</th><th>CSID</th><th>Image Count</th><th>Block Count</th></tr></thead><tbody>';
+                vf.slice(0, 200).forEach(r => {
+                    h += `<tr><td>${escH(r.supplier)}</td><td>${escH(r.stone_name)}</td><td style="font-family:monospace;font-size:0.85em;">${escH(r.csid)}</td><td>${r.image_count.toLocaleString()}</td><td>${r.block_count}</td></tr>`;
+                });
+                h += '</tbody></table>';
+                if (vf.length > 200) h += `<p style="color:#888;font-size:0.85em;">…showing first 200 of ${vf.length}.</p>`;
+                document.getElementById('preAnalyseVolume').innerHTML = h;
+            }
+
+            // Trim button gating — hard-block on missing required columns.
+            if (missing.length > 0) {
+                preAnalyseTrimBtn.disabled = true;
+                preAnalyseTrimEnabled = false;
+                preAnalyseErrorEl.textContent = 'Trim disabled — missing required columns: ' + missing.map(m => m.column).join(', ');
+                preAnalyseErrorEl.classList.remove('hidden');
+            } else {
+                preAnalyseTrimBtn.disabled = false;
+                preAnalyseTrimEnabled = true;
+            }
+        }
+
+        async function downloadTrimmedCsv() {
+            if (!preAnalyseFile || !preAnalyseTrimEnabled) return;
+            preAnalyseTrimBtn.disabled = true;
+            preAnalyseTrimStatus.textContent = 'Building trimmed CSV…';
+            try {
+                const fd = new FormData();
+                fd.append('file', preAnalyseFile);
+                const resp = await fetch('/admin/clean-import/pre-analyse/trimmed-csv', { method: 'POST', body: fd });
+                if (!resp.ok) {
+                    let msg = resp.statusText;
+                    try { const j = await resp.json(); msg = j.error || msg; } catch (_) { }
+                    preAnalyseTrimStatus.textContent = '';
+                    alert('Trim failed: ' + msg);
+                    preAnalyseTrimBtn.disabled = false;
+                    return;
+                }
+                const summaryHdr = resp.headers.get('X-Trim-Summary');
+                let summary = null;
+                if (summaryHdr) { try { summary = JSON.parse(summaryHdr); } catch (_) { } }
+                const blob = await resp.blob();
+                const cd = resp.headers.get('Content-Disposition') || '';
+                const m = cd.match(/filename="([^"]+)"/);
+                const outName = m ? m[1] : (preAnalyseFile.name.replace(/\.csv$/i, '') + '.trimmed.csv');
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = outName;
+                document.body.appendChild(a); a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                if (summary) {
+                    preAnalyseTrimStatus.textContent =
+                        `Downloaded ${outName} · ${summary.original_row_count.toLocaleString()} rows → ${summary.trimmed_row_count.toLocaleString()} rows · ${summary.csids_trimmed.toLocaleString()} CSIDs trimmed`;
+                } else {
+                    preAnalyseTrimStatus.textContent = `Downloaded ${outName}.`;
+                }
+            } catch (e) {
+                preAnalyseTrimStatus.textContent = '';
+                alert('Error: ' + e.message);
+            }
+            preAnalyseTrimBtn.disabled = false;
+        }
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        async function handleFile(file) {
+            selectedFile = file;
+            fileName.textContent = `Selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/admin/clean-import/preview', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    csvRows = data.rows;
+                    renderPreview(data);
+                    previewSection.classList.remove('hidden');
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (err) {
+                alert('Error reading file: ' + err.message);
+            }
+        }
+
+        function renderPreview(data) {
+            let html = '<p style="color: #888; margin-bottom: 10px;">Headers found: <code>' +
+                data.headers.join(', ') + '</code></p>';
+
+            if (data.warnings && data.warnings.length > 0) {
+                html += '<div style="background: #4a3a1a; padding: 10px; border-radius: 6px; margin-bottom: 15px;">';
+                html += '<strong style="color: #ffc107;">Warnings:</strong><ul style="margin-left: 20px; margin-top: 5px;">';
+                data.warnings.forEach(w => {
+                    html += `<li style="color: #ffc107;">${w}</li>`;
+                });
+                html += '</ul></div>';
+            }
+
+            html += '<table><tr>';
+            data.headers.forEach(h => {
+                const isVendor = h === 'vendor name';
+                const isName = h === 'name';
+                html += `<th style="${isVendor ? 'background: #2e7d32;' : (isName ? 'background: #4a90d9;' : '')}">${h}</th>`;
+            });
+            html += '</tr>';
+
+            data.preview_rows.forEach(row => {
+                html += '<tr>';
+                data.headers.forEach(h => {
+                    html += `<td>${row[h] || ''}</td>`;
+                });
+                html += '</tr>';
+            });
+            html += '</table>';
+
+            html += `<p style="margin-top: 15px; color: #888;">Total rows: ${data.total_rows}</p>`;
+
+            previewContent.innerHTML = html;
+        }
+
+        async function runImport() {
+            if (!selectedFile) {
+                alert('Please select a file first');
+                return;
+            }
+
+            const btn = document.getElementById('importBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span>Importing & Validating…';
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            try {
+                const response = await fetch('/api/orchestrator/import', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                btn.disabled = false;
+                btn.textContent = 'Import to Clean DB';
+
+                renderResult(data);
+                resultSection.classList.remove('hidden');
+                await loadDatasets();
+            } catch (err) {
+                btn.disabled = false;
+                btn.textContent = 'Import to Clean DB';
+                alert('Error: ' + err.message);
+            }
+        }
+
+        function renderResult(data) {
+            const vs = data.validation_status || 'draft';
+            const blocked = data.activation_blocked;
+            const reasons = data.blocked_reasons || [];
+            const contReport = data.continuity_report || {};
+            const contStatus = contReport.continuity_status || '';
+            const contWarnings = contReport.warnings || [];
+            const contMetrics = contReport.metrics || {};
+
+            // Header status banner
+            let bannerHtml = '';
+            if (!data.success && reasons.length > 0) {
+                bannerHtml = `<div style="background:#4a1a1a;border:1px solid #f44336;border-radius:8px;padding:15px;margin-bottom:15px;">
+                    <strong style="color:#f44336;">⛔ Import Blocked — No rows written</strong>
+                    <ul style="margin-left:20px;margin-top:8px;">
+                        ${reasons.map(r => `<li style="color:#ef9a9a;">${escH(r)}</li>`).join('')}
+                    </ul>
+                </div>`;
+            } else if (blocked && reasons.length > 0) {
+                bannerHtml = `<div style="background:#4a2a1a;border:1px solid #ff8f00;border-radius:8px;padding:15px;margin-bottom:15px;">
+                    <strong style="color:#ffb74d;">⚠ Rows imported but activation is BLOCKED</strong>
+                    <ul style="margin-left:20px;margin-top:8px;">
+                        ${reasons.map(r => `<li style="color:#ffcc80;">${escH(r)}</li>`).join('')}
+                    </ul>
+                    <p style="margin-top:8px;color:#bbb;font-size:0.9em;">Review reasons above and resolve before activating.</p>
+                </div>`;
+            } else if (data.success && !blocked) {
+                bannerHtml = `<div style="background:#1a3a1a;border:1px solid #2e7d32;border-radius:8px;padding:15px;margin-bottom:15px;">
+                    <strong style="color:#4caf50;">✅ Validated — Ready to Activate</strong>
+                    <p style="color:#a5d6a7;margin-top:6px;font-size:0.9em;">Use the <strong>Activate</strong> button in the Datasets table below to make this dataset live.</p>
+                </div>`;
+            }
+
+            let html = bannerHtml;
+            html += '<div class="summary-grid">';
+            html += `<div class="summary-item"><div class="value" style="font-size:1em;font-family:monospace">${data.dataset_id || '—'}</div><div class="label">Dataset ID</div></div>`;
+            html += `<div class="summary-item"><div class="value">${(data.rows_read || 0).toLocaleString()}</div><div class="label">Rows Read</div></div>`;
+            html += `<div class="summary-item"><div class="value">${(data.rows_imported || 0).toLocaleString()}</div><div class="label">Rows Imported</div></div>`;
+            html += `<div class="summary-item"><div class="value">${(data.duplicates_skipped || 0).toLocaleString()}</div><div class="label">Duplicates Skipped</div></div>`;
+            const vsClass = vs === 'validated' ? 'success' : (vs === 'blocked' ? 'danger' : '');
+            html += `<div class="summary-item ${vsClass}"><div class="value"><span class="badge badge-${vs}">${vs.toUpperCase()}</span></div><div class="label">Validation Status</div></div>`;
+            if (contStatus) {
+                const csClass = contStatus === 'pass' ? 'success' : (contStatus === 'block' ? 'danger' : 'warning');
+                html += `<div class="summary-item ${csClass}"><div class="value"><span class="badge badge-${contStatus === 'warn' ? 'warn' : (contStatus === 'pass' ? 'pass' : (contStatus === 'block' ? 'blocked' : 'no_baseline'))}">${contStatus.toUpperCase()}</span></div><div class="label">Continuity</div></div>`;
+            }
+            html += '</div>';
+
+            if (data.errors && data.errors.length > 0) {
+                html += '<div style="background: #4a1a1a; padding: 15px; border-radius: 8px; margin-top: 15px;">';
+                html += '<strong style="color: #f44336;">Errors:</strong><ul style="margin-left: 20px; margin-top: 5px;">';
+                data.errors.slice(0, 20).forEach(e => {
+                    html += `<li style="color: #ff8a80;">${escH(e)}</li>`;
+                });
+                if (data.errors.length > 20) {
+                    html += `<li style="color: #888;">… and ${data.errors.length - 20} more</li>`;
+                }
+                html += '</ul></div>';
+            }
+
+            // Continuity details
+            if (contStatus && contStatus !== 'no_baseline') {
+                html += `<div style="background:#1a1a2e;border-radius:8px;padding:15px;margin-top:15px;">`;
+                html += `<h4 style="margin-bottom:12px;">Continuity Details</h4>`;
+                if (contWarnings.length > 0) {
+                    html += `<ul style="margin-left:20px;">`;
+                    contWarnings.forEach(w => { html += `<li style="color:#ffcc80;">${escH(w)}</li>`; });
+                    html += `</ul>`;
+                }
+                if (contMetrics && Object.keys(contMetrics).length > 0) {
+                    html += `<table style="margin-top:10px;font-size:0.85em;">
+                        <tr><th>Metric</th><th>Value</th></tr>
+                        <tr><td>Baseline rows</td><td>${(contMetrics.active_row_count || 0).toLocaleString()}</td></tr>
+                        <tr><td>Candidate rows</td><td>${(contMetrics.candidate_row_count || 0).toLocaleString()}</td></tr>
+                        <tr><td>Row count delta</td><td>${contMetrics.row_count_delta >= 0 ? '+' : ''}${contMetrics.row_count_delta}</td></tr>
+                        <tr><td>Dropped (%)</td><td>${contMetrics.row_count_drop_pct}%</td></tr>
+                        <tr><td>company_stone_id overlap</td><td>${contMetrics.overlap_csid_pct}%</td></tr>
+                        <tr><td>Disappeared csids</td><td>${contMetrics.disappeared_csid_count} (${contMetrics.disappeared_csid_pct}%)</td></tr>
+                        <tr><td>New csids</td><td>${contMetrics.new_csid_count} (${contMetrics.new_csid_pct}%)</td></tr>
+                        ${contMetrics.disappeared_vendors && contMetrics.disappeared_vendors.length ? `<tr><td>Lost suppliers</td><td>${contMetrics.disappeared_vendors.join(', ')}</td></tr>` : ''}
+                    </table>`;
+                }
+                html += `</div>`;
+            }
+
+            document.getElementById('importSummary').innerHTML = html;
+            document.getElementById('activationPanel').classList.add('hidden');
+
+            if (data.enrichment_plan) {
+                renderEnrichmentPlan(data.enrichment_plan);
+            }
+
+            if (data.validation && Object.keys(data.validation).length > 0) {
+                renderValidation(data.validation);
+            }
+        }
+
+        function renderEnrichmentPlan(plan) {
+            if (plan.error) {
+                document.getElementById('enrichmentPlan').innerHTML =
+                    `<div class="enrichment-plan"><h3>Enrichment Classification</h3>` +
+                    `<p style="color:#ef9a9a;">Classification failed: ${escH(plan.error)}</p></div>`;
+                document.getElementById('enrichmentPlan').style.display = 'block';
+                return;
+            }
+
+            const counts = plan.counts || {};
+            const n = counts.new || 0;
+            const ci = counts.changed_image || 0;
+            const cm = counts.changed_metadata || 0;
+            const u = counts.unchanged || 0;
+            const inv = counts.invalid || 0;
+            const datasetId = escH(plan.dataset_id || '');
+            const needsWork = n + ci + cm;
+
+            let statusLine = '';
+            if (!plan.baseline_dataset_id) {
+                statusLine = `<p style="color:#aaa;font-size:0.88em;margin-bottom:12px;">No previous active dataset found — all stones will be treated as new.</p>`;
+            } else {
+                statusLine = `<p style="color:#aaa;font-size:0.88em;margin-bottom:12px;">Compared against active baseline: <code>${escH(plan.baseline_dataset_id)}</code></p>`;
+            }
+
+            let html = `<div class="enrichment-plan" id="epPanel">
+                <h3>Enrichment Plan</h3>
+                ${statusLine}
+                <div class="ep-grid">
+                    <div class="ep-tile ep-new"><div class="ep-val">${n.toLocaleString()}</div><div class="ep-lbl">New stones</div></div>
+                    <div class="ep-tile ep-changed_image"><div class="ep-val">${ci.toLocaleString()}</div><div class="ep-lbl">Changed images</div></div>
+                    <div class="ep-tile ep-changed_metadata"><div class="ep-val">${cm.toLocaleString()}</div><div class="ep-lbl">Changed metadata</div></div>
+                    <div class="ep-tile ep-unchanged"><div class="ep-val">${u.toLocaleString()}</div><div class="ep-lbl">Unchanged</div></div>
+                    ${inv > 0 ? `<div class="ep-tile ep-invalid"><div class="ep-val">${inv.toLocaleString()}</div><div class="ep-lbl">Invalid (skipped)</div></div>` : ''}
+                </div>`;
+
+            if (needsWork === 0 && u > 0) {
+                html += `<p style="color:#66bb6a;font-weight:600;margin-bottom:14px;">All ${u.toLocaleString()} stones are unchanged — no enrichment compute needed.</p>`;
+            } else {
+                html += `<p style="color:#aaa;font-size:0.88em;margin-bottom:14px;">
+                    <strong style="color:#fff;">${needsWork.toLocaleString()} stone${needsWork !== 1 ? 's' : ''}</strong> require enrichment.
+                    ${u.toLocaleString()} unchanged stone${u !== 1 ? 's' : ''} will be skipped if you choose incremental.
+                </p>`;
+            }
+
+            html += `<div class="ep-actions">`;
+            if (needsWork > 0) {
+                html += `<button class="btn-incremental" onclick="runEnrichment('${datasetId}', 'incremental', this)">
+                    Compute Only New &amp; Changed (${needsWork.toLocaleString()} stones)
+                </button>`;
+            }
+            html += `<button class="btn-full" onclick="runEnrichment('${datasetId}', 'full', this)">
+                Recompute All (${(n + ci + cm + u).toLocaleString()} stones)
+            </button>`;
+            html += `</div>`;
+            html += `<div class="ep-log" id="epLog"></div>`;
+            html += `
+            <div class="ep-progress" id="epProgress">
+                <div class="ep-progress-header">
+                    <span class="ep-progress-title" id="epStageLabel">Starting…</span>
+                    <span class="ep-progress-pct" id="epPct">0%</span>
+                </div>
+                <div class="ep-bar-wrap"><div class="ep-bar-fill" id="epBarFill"></div></div>
+                <div class="ep-progress-meta">
+                    <span><span class="val" id="epDone">0</span> / <span class="val" id="epTotal">?</span> stones</span>
+                    <span><span class="val" id="epStageDone">0</span> / <span class="val" id="epStageTotal">?</span> this stage</span>
+                    <span>Elapsed: <span class="val" id="epElapsed">0s</span></span>
+                </div>
+                <div class="ep-stage-grid">
+                    <div class="ep-stage-tile" id="stCV">
+                        <div class="st-label">CV + Fingerprints</div>
+                        <div class="st-val" id="stCVVal">—</div>
+                    </div>
+                    <div class="ep-stage-tile" id="stEmb">
+                        <div class="st-label">Embeddings</div>
+                        <div class="st-val" id="stEmbVal">—</div>
+                    </div>
+                    <div class="ep-stage-tile" id="stMeta">
+                        <div class="st-label">Metadata Agg.</div>
+                        <div class="st-val" id="stMetaVal">—</div>
+                    </div>
+                </div>
+                <div class="ep-stone-id" id="epStoneId"></div>
+            </div>
+            <div class="ep-final-stats" id="epFinalStats">
+                <div style="color:#4caf50;font-weight:600;margin-bottom:8px;" id="epFinalTitle">Enrichment complete</div>
+                <div class="ep-final-grid" id="epFinalGrid"></div>
+                <div class="ep-elapsed" id="epFinalElapsed"></div>
+            </div>`;
+            html += `</div>`;
+
+            document.getElementById('enrichmentPlan').innerHTML = html;
+            document.getElementById('enrichmentPlan').style.display = 'block';
+
+            if (datasetId) {
+                checkPreviousProgress(datasetId);
+            }
+        }
+
+        async function checkPreviousProgress(datasetId) {
+            try {
+                const resp = await fetch(`/api/orchestrator/datasets/${encodeURIComponent(datasetId)}/progress`);
+                if (!resp.ok) return;
+                const p = await resp.json();
+                const reportLink = (p.run_id && p.run_report_url)
+                    ? ` <a href="${p.run_report_url}" target="_blank" style="color:#90caf9;">view run report</a>`
+                    : '';
+                if (p.status === 'error') {
+                    // Red banner: finished run came in below coverage threshold.
+                    const banner = document.createElement('div');
+                    banner.style.cssText = 'background:#4a1a1a;border:1px solid #f44336;border-radius:8px;padding:14px 18px;margin-bottom:16px;color:#ffcdd2;';
+                    const cov = (p.coverage_pct != null) ? `${p.coverage_pct.toFixed(1)}%` : 'unknown';
+                    const miss = (p.missing_count != null) ? p.missing_count.toLocaleString() : '?';
+                    banner.innerHTML = `<strong style="color:#ef9a9a;">Previous enrichment failed the coverage gate</strong><br>` +
+                        `<span style="font-size:0.9em;">Coverage: <strong>${cov}</strong>, missing: <strong>${miss}</strong>. ` +
+                        `${p.error || ''}${reportLink}</span>`;
+                    const panel = document.getElementById('epPanel');
+                    if (panel) panel.insertBefore(banner, panel.children[1]);
+                } else if (p.status === 'interrupted' || p.interrupted) {
+                    const pct = p.overall_total > 0 ? Math.round((p.overall_done / p.overall_total) * 100) : 0;
+                    const banner = document.createElement('div');
+                    banner.style.cssText = 'background:#3e2723;border:1px solid #ff9800;border-radius:8px;padding:14px 18px;margin-bottom:16px;color:#ffcc80;';
+                    banner.innerHTML = `<strong style="color:#ffb74d;">Previous enrichment was interrupted</strong><br>` +
+                        `<span style="font-size:0.9em;">Last stage: <strong>${STAGE_LABELS[p.stage] || p.stage}</strong> — ` +
+                        `${(p.overall_done || 0).toLocaleString()} / ${(p.overall_total || 0).toLocaleString()} stones (${pct}%) completed.${reportLink}<br>` +
+                        `Click <strong>Compute Only New & Changed</strong> to resume — already-processed stones will be skipped automatically.</span>`;
+                    const panel = document.getElementById('epPanel');
+                    if (panel) panel.insertBefore(banner, panel.children[1]);
+                } else if (p.status === 'done') {
+                    const banner = document.createElement('div');
+                    banner.style.cssText = 'background:#1b3a1b;border:1px solid #4caf50;border-radius:8px;padding:14px 18px;margin-bottom:16px;color:#a5d6a7;';
+                    banner.innerHTML = `<strong style="color:#66bb6a;">Previous enrichment completed successfully</strong>`;
+                    const panel = document.getElementById('epPanel');
+                    if (panel) panel.insertBefore(banner, panel.children[1]);
+                }
+            } catch (_) { }
+        }
+
+        const STAGE_LABELS = {
+            starting: 'Starting…',
+            classifying: 'Classifying stones…',
+            prefetching: 'Downloading images…',
+            cv_fingerprints: 'Stage 1: CV + Fingerprints',
+            embeddings: 'Stage 2: Building Embeddings',
+            metadata_aggregation: 'Stage 3: Metadata Aggregation',
+            done: 'All stages complete',
+        };
+
+        function fmtElapsed(seconds) {
+            if (seconds < 60) return `${Math.round(seconds)}s`;
+            const m = Math.floor(seconds / 60);
+            const s = Math.round(seconds % 60);
+            return `${m}m ${s}s`;
+        }
+
+        function updateProgressUI(p, startedAt) {
+            const now = Date.now() / 1000;
+            const elapsed = now - startedAt;
+            const total = p.overall_total || 0;
+            const done = p.overall_done || 0;
+            const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+            document.getElementById('epProgress').style.display = 'block';
+            document.getElementById('epStageLabel').textContent = STAGE_LABELS[p.stage] || p.stage || 'Running…';
+            document.getElementById('epPct').textContent = `${pct}%`;
+            const fill = document.getElementById('epBarFill');
+            fill.style.width = `${pct}%`;
+            fill.className = 'ep-bar-fill' + (p.status === 'done' ? ' done' : p.status === 'error' ? ' error' : '');
+            document.getElementById('epDone').textContent = done.toLocaleString();
+            document.getElementById('epTotal').textContent = total.toLocaleString();
+            document.getElementById('epStageDone').textContent = (p.stage_done || 0).toLocaleString();
+            document.getElementById('epStageTotal').textContent = (p.stage_total || 0).toLocaleString();
+            document.getElementById('epElapsed').textContent = fmtElapsed(elapsed);
+
+            const completed = p.stages_completed || [];
+            const curStage = p.stage;
+
+            const stCV = document.getElementById('stCV');
+            const stEmb = document.getElementById('stEmb');
+            const stMeta = document.getElementById('stMeta');
+
+            function setTile(el, valEl, stageName, label) {
+                if (completed.includes(stageName)) {
+                    el.className = 'ep-stage-tile complete';
+                    valEl.textContent = label;
+                } else if (curStage === stageName) {
+                    el.className = 'ep-stage-tile active';
+                    valEl.textContent = `${(p.stage_done || 0)} / ${(p.stage_total || 0)}`;
+                } else {
+                    el.className = 'ep-stage-tile';
+                    valEl.textContent = '—';
+                }
+            }
+            setTile(stCV, document.getElementById('stCVVal'), 'cv_fingerprints', 'Done');
+            setTile(stEmb, document.getElementById('stEmbVal'), 'embeddings', 'Done');
+            setTile(stMeta, document.getElementById('stMetaVal'), 'metadata_aggregation', 'Done');
+
+            if (p.current_stone) {
+                document.getElementById('epStoneId').innerHTML =
+                    `<span class="sid-label">Processing: </span><span class="sid-val">${p.current_stone}</span>`;
+            }
+        }
+
+        function showFinalStats(data, startedAt) {
+            const s = data.stages_run || {};
+            const failed = (data.failed_stone_ids || []).length;
+            const elapsed = data.finished_at ? fmtElapsed(data.finished_at - startedAt) : '';
+
+            const tiles = [
+                { label: 'CV Built', val: s.cv_and_aggregation_built || 0, cls: 'success' },
+                { label: 'Embeddings Built', val: s.embeddings_built || 0, cls: 'success' },
+                { label: 'Emb. Skipped', val: s.embeddings_skipped || 0, cls: '' },
+                { label: 'Metadata Agg.', val: s.metadata_aggregation_built || 0, cls: 'success' },
+                { label: 'Failed', val: failed, cls: failed > 0 ? 'danger' : 'success' },
+                { label: 'Cache Cleared', val: s.cache_invalidated ? 'Yes' : 'No', cls: s.cache_invalidated ? 'success' : '' },
+            ];
+            const grid = document.getElementById('epFinalGrid');
+            grid.innerHTML = tiles.map(t =>
+                `<div class="ep-final-tile ${t.cls}"><div class="fv">${t.val}</div><div class="fl">${t.label}</div></div>`
+            ).join('');
+            document.getElementById('epFinalStats').style.display = 'block';
+            if (elapsed) document.getElementById('epFinalElapsed').textContent = `Total time: ${elapsed}`;
+        }
+
+        function showFinalStatsFromProgress(p, startedAt) {
+            const s = p.final_stages_run || {};
+            const failed = p.failed_count || 0;
+            const elapsed = p.finished_at ? fmtElapsed(p.finished_at - startedAt) : '';
+
+            const tiles = [
+                { label: 'CV Built', val: s.cv_and_aggregation_built || 0, cls: 'success' },
+                { label: 'Embeddings Built', val: s.embeddings_built || 0, cls: 'success' },
+                { label: 'Emb. Skipped', val: s.embeddings_skipped || 0, cls: '' },
+                { label: 'Metadata Agg.', val: s.metadata_aggregation_built || 0, cls: 'success' },
+                { label: 'Failed', val: failed, cls: failed > 0 ? 'danger' : 'success' },
+                { label: 'Cache Cleared', val: s.cache_invalidated ? 'Yes' : 'No', cls: s.cache_invalidated ? 'success' : '' },
+            ];
+            const grid = document.getElementById('epFinalGrid');
+            grid.innerHTML = tiles.map(t =>
+                `<div class="ep-final-tile ${t.cls}"><div class="fv">${t.val}</div><div class="fl">${t.label}</div></div>`
+            ).join('');
+            document.getElementById('epFinalStats').style.display = 'block';
+            if (elapsed) document.getElementById('epFinalElapsed').textContent = `Total time: ${elapsed}`;
+        }
+
+        async function runEnrichment(datasetId, mode, btn) {
+            const actions = document.querySelectorAll('#epPanel .ep-actions button');
+            actions.forEach(b => b.disabled = true);
+            const origText = btn.textContent;
+            btn.textContent = mode === 'incremental' ? 'Running…' : 'Recomputing…';
+
+            const log = document.getElementById('epLog');
+            log.style.display = 'block';
+            log.textContent = `Starting ${mode} enrichment for dataset ${datasetId}…\n`;
+
+            const startedAt = Date.now() / 1000;
+            let pollInterval = null;
+
+            async function pollProgress() {
+                try {
+                    const pr = await fetch(`/api/orchestrator/datasets/${encodeURIComponent(datasetId)}/progress`);
+                    if (!pr.ok) return;
+                    const p = await pr.json();
+                    if (p.status === 'idle') return;
+                    updateProgressUI(p, startedAt);
+
+                    if (p.status === 'done') {
+                        clearInterval(pollInterval);
+                        pollInterval = null;
+                        showFinalStatsFromProgress(p, startedAt);
+                        log.textContent += `\nDone. You can now activate the dataset when ready.`;
+                        btn.textContent = 'Done ✓';
+                    } else if (p.status === 'error') {
+                        clearInterval(pollInterval);
+                        pollInterval = null;
+                        log.textContent += `\nError: ${p.error || 'Unknown error'}`;
+                        document.getElementById('epBarFill').classList.add('error');
+                        document.getElementById('epStageLabel').textContent = 'Error';
+                        document.getElementById('epFinalTitle').textContent = 'Enrichment failed';
+                        document.getElementById('epFinalTitle').style.color = '#ef5350';
+                        document.getElementById('epFinalStats').style.display = 'block';
+                        btn.textContent = origText;
+                        actions.forEach(b => b.disabled = false);
+                    }
+                } catch (_) { }
+            }
+
+            pollInterval = setInterval(pollProgress, 2000);
+
+            try {
+                const resp = await fetch(`/api/orchestrator/datasets/${encodeURIComponent(datasetId)}/enrich`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mode, use_model_predictions: false, dry_run: false }),
+                });
+                const data = await resp.json();
+
+                if (!resp.ok && resp.status !== 202) {
+                    clearInterval(pollInterval);
+                    log.textContent += `\nError: ${data.error || JSON.stringify(data)}`;
+                    document.getElementById('epBarFill').classList.add('error');
+                    document.getElementById('epStageLabel').textContent = 'Error';
+                    document.getElementById('epFinalTitle').textContent = 'Enrichment failed';
+                    document.getElementById('epFinalTitle').style.color = '#ef5350';
+                    document.getElementById('epFinalStats').style.display = 'block';
+                    btn.textContent = origText;
+                    actions.forEach(b => b.disabled = false);
+                    return;
+                }
+
+                log.textContent += `\nEnrichment started. Polling for progress…\n`;
+
+            } catch (err) {
+                clearInterval(pollInterval);
+                log.textContent += `\nException: ${err.message}`;
+                btn.textContent = origText;
+                actions.forEach(b => b.disabled = false);
+            }
+        }
+
+        function renderValidation(v) {
+            if (!v || !v.vendor_pollution || !v.packing_list_validation) {
+                return;
+            }
+            let html = '<div class="summary-grid">';
+
+            const pollutionClass = v.vendor_pollution.pollution_pct < 1 ? 'success' : 'danger';
+            html += `<div class="summary-item ${pollutionClass}">
+                <div class="value">${v.vendor_pollution.pollution_pct}%</div>
+                <div class="label">Vendor Pollution (vendor=stone_name)</div>
+            </div>`;
+
+            const singleStoneClass = v.packing_list_validation.single_company_stone_pct > 99 ? 'success' : 'warning';
+            html += `<div class="summary-item ${singleStoneClass}">
+                <div class="value">${v.packing_list_validation.single_company_stone_pct}%</div>
+                <div class="label">Single company_stone per packing_list</div>
+            </div>`;
+
+            const singleNameClass = v.packing_list_validation.single_stone_name_pct > 99 ? 'success' : 'warning';
+            html += `<div class="summary-item ${singleNameClass}">
+                <div class="value">${v.packing_list_validation.single_stone_name_pct}%</div>
+                <div class="label">Single stone_name per packing_list</div>
+            </div>`;
+
+            html += '</div>';
+
+            html += '<h4 style="margin-top: 20px;">Top 30 Vendors</h4>';
+            html += '<table><tr><th>#</th><th>Vendor</th><th>Images</th></tr>';
+            v.top_vendors.forEach((vendor, i) => {
+                html += `<tr><td>${i + 1}</td><td>${vendor.vendor}</td><td>${vendor.image_count}</td></tr>`;
+            });
+            html += '</table>';
+
+            document.getElementById('validationReport').innerHTML = html;
+        }
+    </script>
+
+    {# Shared run-history partial — single source of truth across Surfaces
+    A, B, and C. Loaded at end of body so window.RunHistoryBlock is
+    available before any user interaction triggers toggleDatasetRuns. #}
+    {% include "_partials/run_history_block.html" %}
+</body>
+
+</html>
