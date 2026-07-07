@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional, Any, Tuple
 from src.modules.taxonomy import repository as _repo
-from src.modules.taxonomy.repository import PATTERN_FAMILY_ALIASES
+from src.modules.taxonomy.repository import PATTERN_FAMILY_ALIASES, MergedStockTags
 from pathlib import Path
 from src.modules.taxonomy import color_rules
 from src.modules.taxonomy.aggregator import aggregate_stock, _fingerprint_to_tag_dict
