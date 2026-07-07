@@ -74,7 +74,6 @@ nvidia-nvjitlink==13.0.88
 nvidia-nvshmem-cu13==3.4.5
 nvidia-nvtx==13.0.85
 open_clip_torch==3.3.0
-opencv-python==4.13.0.92
 opencv-python-headless==4.13.0.92
 packaging==26.2
 pandas==3.0.3

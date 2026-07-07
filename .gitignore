@@ -1,29 +1,61 @@
+# ── Python ───────────────────────────────────────────────────────────────────
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
+.pythonlibs/
+.venv/
+venv/
+
+# ── Environment ───────────────────────────────────────────────────────────────
 .env
+.env.*
+
+# ── Databases (SQLite) ────────────────────────────────────────────────────────
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+Databases/
+data/
+
+# ── ML / Embeddings ───────────────────────────────────────────────────────────
+*.npy            # numpy embedding arrays
+*.npz
+*.pt             # PyTorch model checkpoints
+*.pth
+*.bin            # HuggingFace / generic model weights
+*.safetensors
+*.pkl
+*.pickle
+*.onnx
+
+# ── Image & analysis caches ───────────────────────────────────────────────────
+# (covers v3_images/, IMAGE_CACHE_DIR, ANALYSIS_CACHE_DIR, etc.)
 cache/
 tmp/
-data/
 exports/
 artifacts/
-*.db
+scratch/
 
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Editor / OS ───────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# ── Misc project files not meant for the repo ─────────────────────────────────
 extra.txt
 error.txt
 flow.md
 deleted_features_backend_mapping.md
-
-.idea/
-.venv/
-tests/
-scratch/
-/tests/
-
 module_architecture.md
-/.idea/
-
-Databases/
 attached_assets/
-*.npy
-*.db-shm
-*.db-wal
+
+# ── Stock tags backup dir (runtime-generated) ─────────────────────────────────
+stock_tags_backup/

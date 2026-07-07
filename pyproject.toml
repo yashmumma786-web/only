@@ -27,7 +27,6 @@ dependencies = [
     "rapidfuzz>=3.14.3",
     "scikit-image>=0.26.0",
     "anthropic>=0.104.1",
-    "opencv-python>=4.13.0.92",
     "scipy>=1.16.3",
     "openpyxl>=3.1.5",
 ]
